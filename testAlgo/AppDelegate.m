@@ -12,6 +12,8 @@
 
 @implementation AppDelegate
 
+dispatch_block_t expirationHandler = nil;
+
 @synthesize window = _window;
 @synthesize viewController = _viewController;
 
@@ -21,6 +23,8 @@
     [_viewController release];
     [super dealloc];
 }
+
+
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -38,11 +42,100 @@
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
 }
 
-- (void)applicationDidEnterBackground:(UIApplication *)application
-{
-    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later. 
-    // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+//- (void)applicationDidEnterBackground:(UIApplication *)application
+//{
+//    // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
+//    // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+//}
+// if the iOS device allows background execution,
+// this Handler will be called
+/*- (void)backgroundHandler {
+ 
+ NSLog(@"### -->VOIP backgrounding callback");
+ 
+ UIApplication*    app = [UIApplication sharedApplication];
+ 
+ bgTask = [app beginBackgroundTaskWithExpirationHandler:^{
+ [app endBackgroundTask:bgTask];
+ bgTask = UIBackgroundTaskInvalid;
+ }];
+ 
+ // Start the long-running task
+ dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+ 
+ while (1) {
+ NSLog(@"BGTime left: %f", [UIApplication sharedApplication].backgroundTimeRemaining);
+ [self doSomething];
+ sleep(1);
+ }
+ });
+ }*/
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+    
+    UIApplication*    app = [UIApplication sharedApplication];
+    
+    // it's better to move "dispatch_block_t expirationHandler"
+    // into your headerfile and initialize the code somewhere else
+    // i.e.
+    // - (void)applicationDidFinishLaunching:(UIApplication *)application {
+    //
+    // expirationHandler = ^{ ... } }
+    // because your app may crash if you initialize expirationHandler twice.
+    if (expirationHandler)
+        expirationHandler = ^{
+            
+            [app endBackgroundTask:bgTask];
+            bgTask = UIBackgroundTaskInvalid;
+            
+            
+            bgTask = [app beginBackgroundTaskWithExpirationHandler:expirationHandler];
+        };
+    
+    bgTask = [app beginBackgroundTaskWithExpirationHandler:expirationHandler];
+    
+    
+    // Start the long-running task and return immediately.
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        
+        // inform others to stop tasks, if you like
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"MyApplicationEntersBackground" object:self];
+//        long i=0;
+        while(TRUE)
+        {
+            NSLog(@"BGTime left: %f", [UIApplication sharedApplication].backgroundTimeRemaining);
+            //NSLog(@"loop %ld",i++);
+            //NSLog(@"ITAI BG");
+            
+            //if (--i==10)
+            //{
+            //
+            //}
+            //else if (i==0)
+            //{
+            //    i=60;
+            //
+            //}
+            //if (--i==0)
+            //{
+            //    i=30;
+            //    [locationManager startUpdatingLocation];
+            //    [locationManager stopUpdatingLocation];
+            //}
+            [NSThread sleepForTimeInterval:570];
+            if (Gps_state == NO)
+            {
+                //if (AGps_state)
+                //    [locationManager stopMonitoringSignificantLocationChanges];
+                [locationManager startUpdatingLocation];
+                [locationManager stopUpdatingLocation];
+                //if (AGps_state)
+                //    [locationManager startMonitoringSignificantLocationChanges];
+            }
+        }
+        // do your background work here
+    });
 }
+
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {

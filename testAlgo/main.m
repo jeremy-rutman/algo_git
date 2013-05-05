@@ -6,7 +6,7 @@
 //  Copyright (c) 2012 itaidddd@gmail.com. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+//#import <UIKit/UIKit.h>
 
 #import "AppDelegate.h"
 

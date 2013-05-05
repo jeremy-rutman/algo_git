@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6E7703B215DAE08E00FCDB9E /* MainService.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E7703B115DAE08E00FCDB9E /* MainService.m */; };
 		6E7E0E4E15DAC93900284F57 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E7E0E4D15DAC93900284F57 /* UIKit.framework */; };
 		6E7E0E5015DAC93900284F57 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E7E0E4F15DAC93900284F57 /* Foundation.framework */; };
 		6E7E0E5215DAC93900284F57 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E7E0E5115DAC93900284F57 /* CoreGraphics.framework */; };
@@ -15,22 +16,28 @@
 		6E7E0E5E15DAC93900284F57 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E7E0E5D15DAC93900284F57 /* AppDelegate.m */; };
 		6E7E0E6115DAC93900284F57 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E7E0E6015DAC93900284F57 /* ViewController.m */; };
 		6E7E0E6415DAC93900284F57 /* ViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6E7E0E6215DAC93900284F57 /* ViewController.xib */; };
+		6E7E0E6B15DAC93900284F57 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E7E0E6A15DAC93900284F57 /* CoreLocation.framework */; };
+		6EADAD0415DAADB4000F3472 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EADAD0315DAADB4000F3472 /* CoreMotion.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		6E7703B115DAE08E00FCDB9E /* MainService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainService.m; sourceTree = "<group>"; };
+		6E7703B415DAE08E00FCDB9E /* MainService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainService.h; sourceTree = "<group>"; };
 		6E7E0E4915DAC93900284F57 /* testAlgo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = testAlgo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E7E0E4D15DAC93900284F57 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		6E7E0E4F15DAC93900284F57 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		6E7E0E5115DAC93900284F57 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		6E7E0E5515DAC93900284F57 /* testAlgo-Info.plist */ = {isa = PBXFileReference; path = "testAlgo-Info.plist"; sourceTree = "<group>"; };
+		6E7E0E5515DAC93900284F57 /* testAlgo-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "testAlgo-Info.plist"; sourceTree = "<group>"; };
 		6E7E0E5715DAC93900284F57 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		6E7E0E5915DAC93900284F57 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		6E7E0E5B15DAC93900284F57 /* testAlgo-Prefix.pch */ = {isa = PBXFileReference; path = "testAlgo-Prefix.pch"; sourceTree = "<group>"; };
-		6E7E0E5C15DAC93900284F57 /* AppDelegate.h */ = {isa = PBXFileReference; path = AppDelegate.h; sourceTree = "<group>"; };
+		6E7E0E5B15DAC93900284F57 /* testAlgo-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "testAlgo-Prefix.pch"; sourceTree = "<group>"; };
+		6E7E0E5C15DAC93900284F57 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		6E7E0E5D15DAC93900284F57 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		6E7E0E5F15DAC93900284F57 /* ViewController.h */ = {isa = PBXFileReference; path = ViewController.h; sourceTree = "<group>"; };
-		6E7E0E6015DAC93900284F57 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		6E7E0E5F15DAC93900284F57 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		6E7E0E6015DAC93900284F57 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; usesTabs = 1; };
 		6E7E0E6315DAC93900284F57 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController.xib; sourceTree = "<group>"; };
+		6E7E0E6A15DAC93900284F57 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		6EADAD0315DAADB4000F3472 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,6 +45,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6EADAD0415DAADB4000F3472 /* CoreMotion.framework in Frameworks */,
+				6E7E0E6B15DAC93900284F57 /* CoreLocation.framework in Frameworks */,
 				6E7E0E4E15DAC93900284F57 /* UIKit.framework in Frameworks */,
 				6E7E0E5015DAC93900284F57 /* Foundation.framework in Frameworks */,
 				6E7E0E5215DAC93900284F57 /* CoreGraphics.framework in Frameworks */,
@@ -67,6 +76,8 @@
 		6E7E0E4C15DAC93900284F57 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6EADAD0315DAADB4000F3472 /* CoreMotion.framework */,
+				6E7E0E6A15DAC93900284F57 /* CoreLocation.framework */,
 				6E7E0E4D15DAC93900284F57 /* UIKit.framework */,
 				6E7E0E4F15DAC93900284F57 /* Foundation.framework */,
 				6E7E0E5115DAC93900284F57 /* CoreGraphics.framework */,
@@ -77,6 +88,8 @@
 		6E7E0E5315DAC93900284F57 /* testAlgo */ = {
 			isa = PBXGroup;
 			children = (
+				6E7703B115DAE08E00FCDB9E /* MainService.m */,
+				6E7703B415DAE08E00FCDB9E /* MainService.h */,
 				6E7E0E5C15DAC93900284F57 /* AppDelegate.h */,
 				6E7E0E5D15DAC93900284F57 /* AppDelegate.m */,
 				6E7E0E5F15DAC93900284F57 /* ViewController.h */,
@@ -124,7 +137,7 @@
 		6E7E0E4015DAC93900284F57 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0430;
+				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = "itaidddd@gmail.com";
 			};
 			buildConfigurationList = 6E7E0E4315DAC93900284F57 /* Build configuration list for PBXProject "testAlgo" */;
@@ -164,6 +177,7 @@
 				6E7E0E5A15DAC93900284F57 /* main.m in Sources */,
 				6E7E0E5E15DAC93900284F57 /* AppDelegate.m in Sources */,
 				6E7E0E6115DAC93900284F57 /* ViewController.m in Sources */,
+				6E7703B215DAE08E00FCDB9E /* MainService.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -194,7 +208,12 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer: Tomer  NeuNer (RXEUP5XKPD)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Tomer  NeuNer (RXEUP5XKPD)";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -209,6 +228,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				PROVISIONING_PROFILE = "41D6E4DA-ABAB-4204-95CA-7597D189DABC";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "41D6E4DA-ABAB-4204-95CA-7597D189DABC";
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -218,7 +239,12 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer: Tomer  NeuNer (RXEUP5XKPD)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Tomer  NeuNer (RXEUP5XKPD)";
 				COPY_PHASE_STRIP = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
@@ -227,6 +253,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				PROVISIONING_PROFILE = "41D6E4DA-ABAB-4204-95CA-7597D189DABC";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "41D6E4DA-ABAB-4204-95CA-7597D189DABC";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -235,10 +263,15 @@
 		6E7E0E6815DAC93900284F57 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer: Tomer  NeuNer (RXEUP5XKPD)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Tomer  NeuNer (RXEUP5XKPD)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "testAlgo/testAlgo-Prefix.pch";
 				INFOPLIST_FILE = "testAlgo/testAlgo-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "41D6E4DA-ABAB-4204-95CA-7597D189DABC";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "41D6E4DA-ABAB-4204-95CA-7597D189DABC";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -246,10 +279,15 @@
 		6E7E0E6915DAC93900284F57 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer: Tomer  NeuNer (RXEUP5XKPD)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Tomer  NeuNer (RXEUP5XKPD)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "testAlgo/testAlgo-Prefix.pch";
 				INFOPLIST_FILE = "testAlgo/testAlgo-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "41D6E4DA-ABAB-4204-95CA-7597D189DABC";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "41D6E4DA-ABAB-4204-95CA-7597D189DABC";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -273,6 +311,7 @@
 				6E7E0E6915DAC93900284F57 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
