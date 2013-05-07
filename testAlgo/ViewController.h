@@ -53,11 +53,32 @@ Boolean AGps_state;
 @property (strong, nonatomic) IBOutlet UILabel *resultLabel10;
 @property (strong, nonatomic) IBOutlet UILabel *resultLabel11;
 @property (strong, nonatomic) IBOutlet UILabel *resultLabel12;
-
+@property (strong, nonatomic) IBOutlet UILabel *resultLabel13;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabel14;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabel15;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabel16;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabel17;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabel18;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabel19;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabel20;
 
 - (IBAction)butttonDIDpressed:(id)sender;
--(void)writeStringToFile:(NSString*)aString;
++(void)writeStringToFile:(NSString*)aString;
+//Method writes a string to a text file
++(void) writeToTextFile;
++(void) writeToLogFile:(NSString*)aString;
+//+(void) displayContent;
+
 //-(NSString *) aString;
 
 
 @end
+
+@interface Sound : NSObject
+
+// Path is relative to the resources dir.
+- (id) initWithPath: (NSString*) path;
+- (void) play;
+
+@end
+

@@ -18,6 +18,12 @@
 		6E7E0E6415DAC93900284F57 /* ViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6E7E0E6215DAC93900284F57 /* ViewController.xib */; };
 		6E7E0E6B15DAC93900284F57 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E7E0E6A15DAC93900284F57 /* CoreLocation.framework */; };
 		6EADAD0415DAADB4000F3472 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EADAD0315DAADB4000F3472 /* CoreMotion.framework */; };
+		BA090D57173914E1001CFD16 /* sound1.wav in Resources */ = {isa = PBXBuildFile; fileRef = BA090D56173914E1001CFD16 /* sound1.wav */; };
+		BA090D59173914E9001CFD16 /* sound2.wav in Resources */ = {isa = PBXBuildFile; fileRef = BA090D58173914E9001CFD16 /* sound2.wav */; };
+		BA090D5B173927A3001CFD16 /* zinger1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BA090D5A173927A3001CFD16 /* zinger1.mp3 */; };
+		BA090D5D173927AC001CFD16 /* zinger2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BA090D5C173927AC001CFD16 /* zinger2.mp3 */; };
+		BA8220E217367AAB00F0853C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA8220E117367AAB00F0853C /* AudioToolbox.framework */; };
+		BA8220E417367F4900F0853C /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = BA8220E317367F4900F0853C /* Default-568h@2x.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +44,12 @@
 		6E7E0E6315DAC93900284F57 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController.xib; sourceTree = "<group>"; };
 		6E7E0E6A15DAC93900284F57 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		6EADAD0315DAADB4000F3472 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
+		BA090D56173914E1001CFD16 /* sound1.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = sound1.wav; sourceTree = "<group>"; };
+		BA090D58173914E9001CFD16 /* sound2.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = sound2.wav; sourceTree = "<group>"; };
+		BA090D5A173927A3001CFD16 /* zinger1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = zinger1.mp3; sourceTree = "<group>"; };
+		BA090D5C173927AC001CFD16 /* zinger2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = zinger2.mp3; sourceTree = "<group>"; };
+		BA8220E117367AAB00F0853C /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		BA8220E317367F4900F0853C /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,6 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BA8220E217367AAB00F0853C /* AudioToolbox.framework in Frameworks */,
 				6EADAD0415DAADB4000F3472 /* CoreMotion.framework in Frameworks */,
 				6E7E0E6B15DAC93900284F57 /* CoreLocation.framework in Frameworks */,
 				6E7E0E4E15DAC93900284F57 /* UIKit.framework in Frameworks */,
@@ -59,6 +72,7 @@
 		6E7E0E3E15DAC93900284F57 = {
 			isa = PBXGroup;
 			children = (
+				BA8220E317367F4900F0853C /* Default-568h@2x.png */,
 				6E7E0E5315DAC93900284F57 /* testAlgo */,
 				6E7E0E4C15DAC93900284F57 /* Frameworks */,
 				6E7E0E4A15DAC93900284F57 /* Products */,
@@ -76,6 +90,7 @@
 		6E7E0E4C15DAC93900284F57 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				BA8220E117367AAB00F0853C /* AudioToolbox.framework */,
 				6EADAD0315DAADB4000F3472 /* CoreMotion.framework */,
 				6E7E0E6A15DAC93900284F57 /* CoreLocation.framework */,
 				6E7E0E4D15DAC93900284F57 /* UIKit.framework */,
@@ -103,6 +118,10 @@
 		6E7E0E5415DAC93900284F57 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				BA090D5A173927A3001CFD16 /* zinger1.mp3 */,
+				BA090D5C173927AC001CFD16 /* zinger2.mp3 */,
+				BA090D56173914E1001CFD16 /* sound1.wav */,
+				BA090D58173914E9001CFD16 /* sound2.wav */,
 				6E7E0E5515DAC93900284F57 /* testAlgo-Info.plist */,
 				6E7E0E5615DAC93900284F57 /* InfoPlist.strings */,
 				6E7E0E5915DAC93900284F57 /* main.m */,
@@ -164,6 +183,11 @@
 			files = (
 				6E7E0E5815DAC93900284F57 /* InfoPlist.strings in Resources */,
 				6E7E0E6415DAC93900284F57 /* ViewController.xib in Resources */,
+				BA8220E417367F4900F0853C /* Default-568h@2x.png in Resources */,
+				BA090D57173914E1001CFD16 /* sound1.wav in Resources */,
+				BA090D59173914E9001CFD16 /* sound2.wav in Resources */,
+				BA090D5B173927A3001CFD16 /* zinger1.mp3 in Resources */,
+				BA090D5D173927AC001CFD16 /* zinger2.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
