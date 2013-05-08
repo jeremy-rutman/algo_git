@@ -24,6 +24,9 @@ Boolean AGps_state;
     AlgoVector *accVectorWC;
     AlgoVector *accVectorWC_unbiased;
     AlgoVector *orientationVector;
+	AlgoVector *velocityVector_2samples;
+	AlgoVector *velocityVector_5samples;
+	AlgoVector *velocityVector_10samples;
     AlgoLocVector * algoLocVector;
     
     
@@ -61,12 +64,26 @@ Boolean AGps_state;
 @property (strong, nonatomic) IBOutlet UILabel *resultLabel18;
 @property (strong, nonatomic) IBOutlet UILabel *resultLabel19;
 @property (strong, nonatomic) IBOutlet UILabel *resultLabel20;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabelV2x;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabelV2y;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabelV2z;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabelV2h;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabelV5x;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabelV5y;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabelV5z;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabelV5h;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabelV10x;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabelV10y;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabelV10z;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabelV10h;
 
 - (IBAction)butttonDIDpressed:(id)sender;
-+(void)writeStringToFile:(NSString*)aString;
+-(void)writeStringToFile:(NSString*)aString;
 //Method writes a string to a text file
 +(void) writeToTextFile;
 +(void) writeToLogFile:(NSString*)aString;
+-(void) integrateAcceleration:(AlgoVector*)aVector Nsamples:(int)N_samples;
+
 //+(void) displayContent;
 
 //-(NSString *) aString;

@@ -7,7 +7,11 @@
 //
 // TODO
 // get accurate timestamp and base velocity on actual integral (dont assume steady sample rate)
-
+//add Astd min thresholds to walking detector
+//dead reckoning
+//parallel parking
+//driver behavior
+//walking detection
 
 #import <CoreMotion/CoreMotion.h>
 #import "ViewController.h"
@@ -36,16 +40,22 @@ typedef struct tag2
 	int mN_samples_in_driving_analysis;
 	int mN_samples_in_2s_analysis;
 	int mN_samples_in_20s_analysis;
+	
 	double mVzStdMinWalkingThreshold;
 	double mOyStd2sMinWalkingThreshold;
 	double mOyStd20sMinWalkingThreshold;
 	double mOzStd2sMinWalkingThreshold;
+	
 	double mdriving_velocity_threshold;
 	double mVzStdMaxDrivingThreshold;
+	double mVzStdMinDrivingThreshold;
 	double mVzAvgMaxDrivingThreshold;
 	double mOyStd20sMaxDrivingThreshold;
 	double mOyStd2sMaxDrivingThreshold;
+	double mOyStd2sMinDrivingThreshold;
 	double mOzStd2sMaxDrivingThreshold;
+	double mOzStd2sMinDrivingThreshold;
+	
 	int mN_samples_taken_initial_value;
 	int mN_samples_taken_current_value;
 	int mN_samples_taken;
@@ -67,7 +77,7 @@ typedef struct tag2
 	double mBeta;
 	double Vhmax;
 //	double Vh2max;
-	time_t PrevioustimeStamp;
+	double PrevioustimeStamp;
     
 } jeremystruct;
 
@@ -145,6 +155,9 @@ Boolean isDriving;
     orientationVector=[[AlgoVector alloc] init];
     accVectorWC= [[AlgoVector alloc] init];
     accVectorWC_unbiased= [[AlgoVector alloc] init];
+	velocityVector_2samples=[[AlgoVector alloc] init];
+	velocityVector_5samples=[[AlgoVector alloc] init];
+	velocityVector_10samples=[[AlgoVector alloc] init];
 	//jeremy
 	
     algoLocVector = [[AlgoLocVector alloc] init];
@@ -154,19 +167,9 @@ Boolean isDriving;
     __block double ax_offset,ay_offset,az_offset; //these are the long-timescale biases of the acceleration vector (assumed to be 'really' //0)
 	__block int i;
 	__block int j;
-	__block time_t timeStamp;
-	__block time_t timeOfLastNotification;
+	__block double timeStamp;
+	__block double timeOfLastNotification;
 
-	//	__block time_t PrevioustimeStamp;
-	//__block double mlinaccvector[3];
-	//	__block double V[3];
-	//	__block double V[3];
-	//double A[3];double R[9];double O[3];
-	//double R11,R12,R13,R21,R22,R23,R31,R32,R33;  //rotation matrix elements
-    //	double Ax,Ay,Az;
-    //	double Ox,Oy,Oz;
-	//__block double Awc[3],Awc_corrected[3];
-	//__block double mVhCurrent,
 	__block double mVhCurrent;
 	__block double mVzStd=0;
 	__block double mVzAvg=0;
@@ -176,7 +179,6 @@ Boolean isDriving;
 	__block double mOy_avg2s;
 	__block double mOz_avg2s=0;
 	__block double mOz_std2s=0;
-
 	__block int mWalking=0;
 	__block int mDriving=0;
 	//jeremy
@@ -291,16 +293,22 @@ Boolean isDriving;
 								jstructure.mN_samples_in_driving_analysis=200;
 								jstructure.mN_samples_in_2s_analysis=20;
 								jstructure.mN_samples_in_20s_analysis=200;
-								jstructure.mVzStdMinWalkingThreshold=0.08;
+								
+								jstructure.mVzStdMinWalkingThreshold=1.0; //.08
 								jstructure.mOyStd2sMinWalkingThreshold=10.0;
 								jstructure.mOyStd20sMinWalkingThreshold=10.0;
 								jstructure.mOzStd2sMinWalkingThreshold=5.0;
-								jstructure.mdriving_velocity_threshold=1.5; //was 0.5
+								
+								jstructure.mdriving_velocity_threshold=0.5; //was 0.5
 								jstructure.mVzStdMaxDrivingThreshold=0.5;
 								jstructure.mVzAvgMaxDrivingThreshold=0.7;
-								jstructure.mOyStd20sMaxDrivingThreshold=5.0;
+								jstructure.mOyStd20sMaxDrivingThreshold=7.0;
 								jstructure.mOyStd2sMaxDrivingThreshold=5.0;
+								jstructure.mOyStd2sMinDrivingThreshold=0.2;
+
 								jstructure.mOzStd2sMaxDrivingThreshold=5.0;
+								jstructure.mOzStd2sMinDrivingThreshold=0.2;
+
 								jstructure.mEnough_driving_samples=0;  //0 false, 1 true
 								jstructure.mSamplingRate=10.0; //in samples/second
 								jstructure.mBeta=0.95; //in samples/second
@@ -309,6 +317,8 @@ Boolean isDriving;
 								jstructure.mVzCount=0;
 								jstructure.mtime_after_walking_to_filter_driving=5;
 					//			[initWithPath (NSString*) @""];
+								
+		//						mV_uncorrected[0]=0.0;
 								
 								jstructure.PrevioustimeStamp=[[NSDate date] timeIntervalSince1970]-.1;
 								timeStamp=[[NSDate date] timeIntervalSince1970];
@@ -325,8 +335,8 @@ Boolean isDriving;
 					//			[ViewController writeStringToFile:@""];
 				//				[ViewController writeStringToFile:@"time Ax Ay Az Ox Oy Oz state\n"];
 								
-									[ViewController writeToLogFile:dateString];
-									[ViewController writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz state\n"];
+									[self writeToLogFile:dateString];
+									[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz state\n"];
 							}
 
 							jmN_samples_taken++;
@@ -375,13 +385,14 @@ Boolean isDriving;
 								_resultLabel0.text = resultString;
 							}
 
-							if (jstructure.mEnough_driving_samples)  {
+							if (jstructure.mEnough_driving_samples)
+							{
 								jstructure.mSamplingRate=jstructure.mN_samples_in_driving_analysis/(jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[9]-jstructure.mSensor_history[0].vals[9]);
 
-								NSLog(@ "samplingrate %f %f %f", jstructure.mSamplingRate,jstructure.mSensor_history[0].vals[9],jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[9]);
+							//	NSLog(@ "samplingrate %f %f %f", jstructure.mSamplingRate,jstructure.mSensor_history[0].vals[9],jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[9]);
 
 								NSString *resultString = [[NSString alloc]
-														  initWithFormat: @"time %d",(int)timeStamp];
+														  initWithFormat: @"time %.1f",timeStamp];
 								_resultLabel0.text = resultString;
 							
 								//smoothed  velocity components from acceleration and history
@@ -394,6 +405,20 @@ Boolean isDriving;
 								// horizontal component of smoothed velocity
 								mVhCurrent=sqrt(jstructure.V[0]*jstructure.V[0]+jstructure.V[1]*jstructure.V[1]);
 								//	if(mVhCurrent>jstructure.Vhmax) jstructure.Vhmax=mVhCurrent;
+								
+								//find velocities using integration over different numbers of samples
+								// V= sum(A*dt)
+								[self integrateAcceleration:velocityVector_2samples Nsamples:2];
+								[self integrateAcceleration:velocityVector_5samples Nsamples:5];
+								[self integrateAcceleration:velocityVector_10samples Nsamples:10];
+								double V2h=sqrt(velocityVector_2samples->x*velocityVector_2samples->x+velocityVector_2samples->y*velocityVector_2samples->y);
+								double V5h=sqrt(velocityVector_5samples->x*velocityVector_5samples->x+velocityVector_5samples->y*velocityVector_5samples->y);
+								double V10h=sqrt(velocityVector_10samples->x*velocityVector_10samples->x+velocityVector_10samples->y*velocityVector_10samples->y);
+								
+								
+								NSLog(@"raw integration 2 samples Vx %.3f Vy %.3f Vz %.3f",velocityVector_2samples->x,velocityVector_2samples->y,velocityVector_2samples->z);
+								NSLog(@"raw integration 5 samples Vx %.3f Vy %.3f Vz %.3f",velocityVector_5samples->x,velocityVector_5samples->y,velocityVector_5samples->z);
+								NSLog(@"raw integration 10 samples Vx %.3f Vy %.3f Vz %.3f",velocityVector_10samples->x,velocityVector_10samples->y,velocityVector_10samples->z);
 								
 								// calculate Vz avg and std for 2s of samples - up/down velocity
 								mVzStd=0;
@@ -463,11 +488,12 @@ Boolean isDriving;
 
 								
 								//initialize string w. nothing
-								popUpString = [NSString stringWithFormat:@"jeremy thinks - nothing"];
+								popUpString = [NSString stringWithFormat:@""];
 								
 								//are we walking??
 								if (//mAvgGabs>mGyro_Walking_Threshold &&
-									mVzStd>jstructure.mVzStdMinWalkingThreshold &&
+								//	mVzStd>jstructure.mVzStdMinWalkingThreshold &&
+									//add Astd min thresholds
 									mOy_std2s>jstructure.mOyStd2sMinWalkingThreshold &&
 									mOz_std2s>jstructure.mOzStd2sMinWalkingThreshold &&
 									mOy_std20s>jstructure.mOyStd20sMinWalkingThreshold)
@@ -489,6 +515,8 @@ Boolean isDriving;
 									mVzAvg<jstructure.mVzAvgMaxDrivingThreshold &&
 									mOy_std20s<jstructure.mOyStd20sMaxDrivingThreshold &&
 									mOy_std2s<jstructure.mOyStd2sMaxDrivingThreshold &&
+									mOy_std2s>jstructure.mOyStd2sMinDrivingThreshold &&
+									mOz_std2s>jstructure.mOzStd2sMinDrivingThreshold &&
 									mOz_std2s<jstructure.mOzStd2sMaxDrivingThreshold)
 								{
 									mDriving=1;
@@ -522,28 +550,7 @@ Boolean isDriving;
 									AudioServicesCreateSystemSoundID ((CFURLRef)soundUrl, &soundID);
 									AudioServicesPlaySystemSound(soundID);
 									
-							a change
-	//do local notification 
-	/*
-									UILocalNotification *localNotification = [[UILocalNotification alloc] init];
-									// create a calendar to form date
-									NSDate *item = [NSDate dateWithTimeIntervalSinceNow:0];
-									
-									localNotification.fireDate = item;
-									localNotification.timeZone = [NSTimeZone defaultTimeZone];
-									localNotification.alertBody = popUpString;
-									localNotification.soundName = UILocalNotificationDefaultSoundName;
-									if(mWalking)localNotification.soundName = @"sound1.wav";
-									else if(mDriving)localNotification.soundName = @"sound2.wav";
-								//	else localNotification.soundName=null;
-									//localNotification.alertAction = @"Show me";
-									localNotification.applicationIconBadgeNumber = 0;
-									
-									NSDictionary *infoDict = [NSDictionary dictionaryWithObjectsAndKeys:@"Object 1", @"Key 1", @"Object 2", @"Key 2", nil];
-									localNotification.userInfo = infoDict;
-									
-									[[UIApplication sharedApplication] scheduleLocalNotification:localNotification];
-						*/		}
+								}
 
 								
 								//	LOGD("xoff %.3f yoff %.3f zoff %.3f",ax_offset,ay_offset,az_offset);
@@ -557,12 +564,12 @@ Boolean isDriving;
 								NSString *c=[[NSString alloc] initWithFormat:@"b"];
 								
 								NSString *logString = [[NSString alloc]
-														  initWithFormat: @"%.2f %.2f %.2f %.2f %.2f %.2f %s",accVectorWC_unbiased->x,accVectorWC_unbiased->y,accVectorWC_unbiased->z,orientationVector->x,orientationVector->y,orientationVector->z,c];
-								[ViewController writeToLogFile:logString];
-							//	[ViewController displayContent:@"JeremyLog.txt"];
+														  initWithFormat: @"%.2f %.2f %.2f %.2f %.2f %.2f %.2f %@",timeStamp,accVectorWC_unbiased->x,accVectorWC_unbiased->y,accVectorWC_unbiased->z,orientationVector->x,orientationVector->y,orientationVector->z,c];
+								[self writeToLogFile:logString];
+							//	[self displayContent:@"JeremyLog.txt"];
 			
-						//		[ViewController writeToTextFile];
-						//		[ViewController displayContent:@"textfile.txt"];
+						//		[self writeToTextFile];
+						//		[self displayContent:@"textfile.txt"];
 
 									//[Viewcontroller writestringtofile]
 								
@@ -594,9 +601,9 @@ Boolean isDriving;
 														   initWithFormat: @"Az %.2f",accVectorWC_unbiased->z];
 								_resultLabel6.text = resultString6;
 
-								NSLog(@"wc2:Ax %lf Ay %lf Az %lf",accVectorWC->x,accVectorWC->y,accVectorWC->z);
+						//		NSLog(@"wc2:Ax %lf Ay %lf Az %lf",accVectorWC->x,accVectorWC->y,accVectorWC->z);
 								NSLog(@"wc3:Ax %lf Ay %lf Az %lf",accVectorWC_unbiased->x,accVectorWC_unbiased->y,accVectorWC_unbiased->z);
-								NSLog(@"offs:x %lf oy %lf Oz %lf",ax_offset,ay_offset,az_offset);
+							//	NSLog(@"offs:x %lf oy %lf Oz %lf",ax_offset,ay_offset,az_offset);
 
 								
 								//print orientations
@@ -698,8 +705,42 @@ Boolean isDriving;
 								NSString *resultString20 = [[NSString alloc] initWithFormat: @""];
 								_resultLabel20.text = resultString20;
 
+								NSString *resultString21 = [[NSString alloc] initWithFormat: @"V2x %.2f",velocityVector_2samples->x];
+								_resultLabelV2x.text = resultString21;
+
+								resultString21 = [[NSString alloc] initWithFormat: @"V2y %.2f",velocityVector_2samples->y];
+								_resultLabelV2y.text = resultString21;
+																
+								resultString21 = [[NSString alloc] initWithFormat: @"V2z %.2f",velocityVector_2samples->z];
+								_resultLabelV2z.text = resultString21;
 								
+								resultString21 = [[NSString alloc] initWithFormat: @"V5x %.2f",velocityVector_5samples->x];
+								_resultLabelV5x.text = resultString21;
 								
+								resultString21 = [[NSString alloc] initWithFormat: @"V5y %.2f",velocityVector_5samples->y];
+								_resultLabelV5y.text = resultString21;
+								
+								resultString21 = [[NSString alloc] initWithFormat: @"V5z %.2f",velocityVector_5samples->z];
+								_resultLabelV5z.text = resultString21;
+								
+								resultString21 = [[NSString alloc] initWithFormat: @"V10x %.2f",velocityVector_10samples->x];
+								_resultLabelV10x.text = resultString21;
+								
+								resultString21 = [[NSString alloc] initWithFormat: @"V10y %.2f",velocityVector_10samples->y];
+								_resultLabelV10y.text = resultString21;
+								
+								resultString21 = [[NSString alloc] initWithFormat: @"V10z %.2f",velocityVector_10samples->z];
+								_resultLabelV10z.text = resultString21;
+
+								resultString21 = [[NSString alloc] initWithFormat: @"V2h %.2f",V2h];
+								_resultLabelV2h.text = resultString21;
+								
+								resultString21 = [[NSString alloc] initWithFormat: @"V5h %.2f",V5h];
+								_resultLabelV5h.text = resultString21;
+								
+								resultString21 = [[NSString alloc] initWithFormat: @"V10h %.2f",V10h];
+								_resultLabelV10h.text = resultString21;
+
 								//JEREMY'S CODE ABOVE UNTIL HERE
 
 								totalSamples++;
@@ -715,7 +756,7 @@ Boolean isDriving;
 								accVector->accuracy = 0;
 								accVector->sampleTimeInMsec = ([[NSDate date] timeIntervalSince1970]*1000);//data.timestamp*1000.0;
 								[algoDetection ProcessNewAccVector:accVector];
-								NSLog(@"x%f y%f z%f time %lld",data.acceleration.x,data.acceleration.y,data.acceleration.z,accVector->sampleTimeInMsec);
+						//		NSLog(@"x%f y%f z%f time %lld",data.acceleration.x,data.acceleration.y,data.acceleration.z,accVector->sampleTimeInMsec);
 								//NSLog(@"x%f y%f z%f time %lld",accVector->x,accVector->y,accVector->z,accVector->sampleTimeInMsec);                                                     //if (acc_i--==0)
 								//{
 								//    acc_i=600;
@@ -989,11 +1030,32 @@ double  Ccalc_datastructure_avg2( int field,int stdlength,int totlength, double 
     *answer=mean;
     return (double)mean;
 }
-//jeremy
+
+// integrate , V=Adt . vals[3-5] are accels with bias removed (all 0 for phone at rest)
+
+-(void)integrateAcceleration:(AlgoVector *)aVector Nsamples:(int)N_samples
+{
+	int i;
+	double dt;
+	aVector->x=0;
+	aVector->y=0;
+	aVector->z=0;
+	for (i=0;i<N_samples;i++)
+	{
+		
+		dt=jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-i-1].vals[9]-
+			jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-i-2].vals[9];
+		
+		aVector->x+=jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-i-1].vals[3]*dt;
+		aVector->y+=jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-i-1].vals[4]*dt;
+		aVector->z+=jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-i-1].vals[5]*dt;
+	}
+
+}
 
 
 
-+(void)writeStringToFile:(NSString*)aString {
+-(void)writeStringToFile:(NSString*)aString {
 	
     // Build the path, and create if needed.
     NSString* filePath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
@@ -1035,7 +1097,7 @@ double  Ccalc_datastructure_avg2( int field,int stdlength,int totlength, double 
 	
 }
 
-+(void) writeToLogFile:(NSString*)content{
+-(void) writeToLogFile:(NSString*)content{
     content = [NSString stringWithFormat:@"%@\n",content];
 	
     //get the documents directory:
