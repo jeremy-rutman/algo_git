@@ -654,11 +654,13 @@ Boolean isDriving;
 								NSString *resultString16 = [[NSString alloc]
 															initWithFormat: @"Oystd2 %.1f",mOy_std2s];
 								_resultLabel16.text = resultString16;
-								if(mOy_std2s>jstructure.mOyStd2sMinWalkingThreshold)
+								if(mOy_std2s>jstructure.mOyStd2sMinWalkingThreshold || mOy_std2s<jstructure.mOyStd2sMinDrivingThreshold)
 									[_resultLabel16 setTextColor:[UIColor redColor]];
 								else if(mOy_std2s<jstructure.mOyStd2sMaxDrivingThreshold) [_resultLabel16 setTextColor:[UIColor greenColor]];
 								else [_resultLabel16 setTextColor:[UIColor blackColor]];
-
+								
+								
+								
 								NSString *resultString17 = [[NSString alloc]
 															initWithFormat: @"Oystd20 %.1f",mOy_std20s];
 								_resultLabel17.text = resultString17;
@@ -674,7 +676,7 @@ Boolean isDriving;
 								
 								_resultLabel18.text = resultString18;
 								setTextColor:[UIColor greenColor];
-									timeOfLastNotification=timeStamp;
+									timeOfLastNotification=[[NSDate date] timeIntervalSince1970];
 
 								}
 								else if(mDriving)
@@ -683,11 +685,11 @@ Boolean isDriving;
 																initWithFormat: @"DRIVING"];
 								_resultLabel18.text = resultString18;
 								[_resultLabel18 setTextColor:[UIColor greenColor]];
-									timeOfLastNotification=timeStamp;
+									timeOfLastNotification=[[NSDate date] timeIntervalSince1970];
 								}
 								else
 								{
-									if(timeStamp-timeOfLastNotification>1)
+									if([[NSDate date] timeIntervalSince1970]-timeOfLastNotification > 5)
 									{
 									NSString *resultString18 = [[NSString alloc] initWithFormat: @""];
 									_resultLabel18.text = resultString18;
@@ -697,10 +699,12 @@ Boolean isDriving;
 								
 								NSString *resultString19 = [[NSString alloc] initWithFormat: @"Ozstd2 %.1f",mOz_std2s];
 								_resultLabel19.text = resultString19;
-								if(mOz_std2s>jstructure.mOzStd2sMinWalkingThreshold)[_resultLabel19 setTextColor:[UIColor redColor]];
+								if(mOz_std2s>jstructure.mOzStd2sMinWalkingThreshold || mOz_std2s<jstructure.mOzStd2sMinDrivingThreshold)
+									[_resultLabel19 setTextColor:[UIColor redColor]];
 								else if(mOz_std2s<jstructure.mOzStd2sMaxDrivingThreshold)[_resultLabel19 setTextColor:[UIColor greenColor]];
 								else [_resultLabel19 setTextColor:[UIColor blackColor]];
 
+								
 								
 								NSString *resultString20 = [[NSString alloc] initWithFormat: @""];
 								_resultLabel20.text = resultString20;
