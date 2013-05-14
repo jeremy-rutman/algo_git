@@ -5,8 +5,10 @@
 //  Created by Itai David on 8/14/12.
 //  Copyright (c) 2012 itaidddd@gmail.com. All rights reserved.
 //
-// TODO
-// get accurate timestamp and base velocity on actual integral (dont assume steady sample rate)
+// 
+//DONE  get accurate timestamp and base velocity on actual integral (dont assume steady sample rate)
+//TODO
+//state button
 //add Astd min thresholds to walking detector
 //dead reckoning
 //parallel parking
@@ -17,6 +19,7 @@
 #import "ViewController.h"
 #import <AudioToolbox/AudioToolbox.h>
 #import <AudioToolbox/AudioServices.h>
+//#import <UseSegmentedControlViewController.h>
 
 //#import "AddTwoTextFieldViewController.h"
 //#import "AddTwoTextFieldAppDelegate.h"
@@ -196,9 +199,6 @@ Boolean isDriving;
 	
     NSLog(@"starting - didload");
 	
-    NSLog(@"time %f",[[NSDate date] timeIntervalSince1970]);
-    NSLog(@"time %f",[[NSDate date] timeIntervalSince1970]);
-	
 	
 //	[ViewController writeToLogFile:@"test1\n"];
 
@@ -324,19 +324,26 @@ Boolean isDriving;
 								timeStamp=[[NSDate date] timeIntervalSince1970];
 								timeOfLastNotification=[[NSDate date] timeIntervalSince1970];
 								
+								//generate a logfile name from the date and time
+								NSDate *today = [NSDate date];
+								NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
+								[dateFormat setDateFormat:@"ddMMYY.HHmm"];
+								NSString *dateString = [dateFormat stringFromDate:today];
+								NSString *logFileName=[NSString stringWithFormat:@"%@.txt",dateString];
+								NSLog(@"logfilename:%@",logFileName);
+								
+								
 								//write initial file lines
-								NSDate *currDate = [NSDate date];
-								NSDateFormatter *dateFormatter = [[NSDateFormatter alloc]init];
-								[dateFormatter setDateFormat:@"dd.MM.YY HH:mm:ss"];
-								NSString *dateString = [dateFormatter stringFromDate:currDate];
-								NSLog(@"DATE%@",dateString);
+								//NSDate *currDate = [NSDate date];
+								//NSDateFormatter *dateFormatter = [[NSDateFormatter alloc]init];
+								//[dateFormatter setDateFormat:@"dd.MM.YY HH:mm:ss"];
 								
 								//init logfile
 					//			[ViewController writeStringToFile:@""];
 				//				[ViewController writeStringToFile:@"time Ax Ay Az Ox Oy Oz state\n"];
 								
-									[self writeToLogFile:dateString];
-									[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz state\n"];
+								[self writeToLogFile:dateString aFileName:logFileName];
+								[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz state\n" aFileName:logFileName];
 							}
 
 							jmN_samples_taken++;
@@ -906,7 +913,7 @@ Boolean isDriving;
 }
 
 - (IBAction)butttonDIDpressed:(id)sender {
-    NSLog(@"test");
+    NSLog(@"button pressed, id=%@",sender);
 }
 
 
@@ -1101,18 +1108,19 @@ double  Ccalc_datastructure_avg2( int field,int stdlength,int totlength, double 
 	
 }
 
--(void) writeToLogFile:(NSString*)content{
+-(void) writeToLogFile:(NSString*)content aFileName:(NSString *)filename{
     content = [NSString stringWithFormat:@"%@\n",content];
 	
     //get the documents directory:
     NSString *documentsDirectory = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
-    NSString *fileName = [NSString stringWithFormat:@"%@/JeremyLog.txt", documentsDirectory];
+    NSString *fileName = [NSString stringWithFormat:@"%@/%@", documentsDirectory,filename];
 	
     NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:fileName];
     if (fileHandle){
         [fileHandle seekToEndOfFile];
         [fileHandle writeData:[content dataUsingEncoding:NSUTF8StringEncoding]];
         [fileHandle closeFile];
+		
     }
     else{
         [content writeToFile:fileName
@@ -1213,3 +1221,21 @@ double  Ccalc_datastructure_avg2( int field,int stdlength,int totlength, double 
 
 
 @end
+
+/*
+@implementation UseSegmentedControlViewController
+
+UILabel *label;
+
+-(void)viewDidLoad {
+	[super viewDidLoad];
+	
+	//Create label
+	label = [[UILabel alloc] init];
+	label.frame = CGRectMake(10, 10, 300, 40);
+	label.textAlignment = UITextAlignmentCenter;
+	[self.view addSubview:label];
+}
+
+@end
+*/

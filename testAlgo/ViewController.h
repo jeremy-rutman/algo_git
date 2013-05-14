@@ -81,7 +81,7 @@ Boolean AGps_state;
 -(void)writeStringToFile:(NSString*)aString;
 //Method writes a string to a text file
 +(void) writeToTextFile;
--(void) writeToLogFile:(NSString*)aString;
+-(void) writeToLogFile:(NSString*)aString aFileName:(NSString *)filename;
 -(void) integrateAcceleration:(AlgoVector*)aVector Nsamples:(int)N_samples;
 
 //+(void) displayContent;
