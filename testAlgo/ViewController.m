@@ -184,6 +184,8 @@ Boolean isDriving;
 	__block double mOz_std2s=0;
 	__block int mWalking=0;
 	__block int mDriving=0;
+	__block NSString *logFileName;
+
 	//jeremy
 	
     locationManager.delegate = self;
@@ -198,7 +200,6 @@ Boolean isDriving;
     [[UIDevice currentDevice] setBatteryMonitoringEnabled:YES];
 	
     NSLog(@"starting - didload");
-	
 	
 //	[ViewController writeToLogFile:@"test1\n"];
 
@@ -329,7 +330,7 @@ Boolean isDriving;
 								NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
 								[dateFormat setDateFormat:@"ddMMYY.HHmm"];
 								NSString *dateString = [dateFormat stringFromDate:today];
-								NSString *logFileName=[NSString stringWithFormat:@"%@.txt",dateString];
+								logFileName=[NSString stringWithFormat:@"%@.txt",dateString];
 								NSLog(@"logfilename:%@",logFileName);
 								
 								
@@ -386,7 +387,7 @@ Boolean isDriving;
 							{
 								jstructure.mEnough_driving_samples=0;
 								NSString *resultString = [[NSString alloc]
-															initWithFormat: @"NOT ENOUGH SAMPLES (%d/200)",jmN_samples_taken];
+															initWithFormat: @"%d/200 SAMPLES",jmN_samples_taken];
 
 							//	[resultString initWithFormat: @"time %d NOT ENOUGH SAMPLES",(int)timeStamp];
 								_resultLabel0.text = resultString;
@@ -572,7 +573,8 @@ Boolean isDriving;
 								
 								NSString *logString = [[NSString alloc]
 														  initWithFormat: @"%.2f %.2f %.2f %.2f %.2f %.2f %.2f %@",timeStamp,accVectorWC_unbiased->x,accVectorWC_unbiased->y,accVectorWC_unbiased->z,orientationVector->x,orientationVector->y,orientationVector->z,c];
-								[self writeToLogFile:logString];
+								NSLog(@"%@",logString);
+								[self writeToLogFile:logString aFileName:logFileName];
 							//	[self displayContent:@"JeremyLog.txt"];
 			
 						//		[self writeToTextFile];
