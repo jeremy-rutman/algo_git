@@ -24,6 +24,8 @@
 		BA090D5D173927AC001CFD16 /* zinger2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BA090D5C173927AC001CFD16 /* zinger2.mp3 */; };
 		BA8220E217367AAB00F0853C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA8220E117367AAB00F0853C /* AudioToolbox.framework */; };
 		BA8220E417367F4900F0853C /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = BA8220E317367F4900F0853C /* Default-568h@2x.png */; };
+		BAAE88341742565F00C42FB8 /* EventKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BAAE88321742565F00C42FB8 /* EventKit.framework */; };
+		BAAE88351742565F00C42FB8 /* EventKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BAAE88331742565F00C42FB8 /* EventKitUI.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +52,8 @@
 		BA090D5C173927AC001CFD16 /* zinger2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = zinger2.mp3; sourceTree = "<group>"; };
 		BA8220E117367AAB00F0853C /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		BA8220E317367F4900F0853C /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		BAAE88321742565F00C42FB8 /* EventKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKit.framework; path = System/Library/Frameworks/EventKit.framework; sourceTree = SDKROOT; };
+		BAAE88331742565F00C42FB8 /* EventKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKitUI.framework; path = System/Library/Frameworks/EventKitUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +61,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BAAE88341742565F00C42FB8 /* EventKit.framework in Frameworks */,
+				BAAE88351742565F00C42FB8 /* EventKitUI.framework in Frameworks */,
 				BA8220E217367AAB00F0853C /* AudioToolbox.framework in Frameworks */,
 				6EADAD0415DAADB4000F3472 /* CoreMotion.framework in Frameworks */,
 				6E7E0E6B15DAC93900284F57 /* CoreLocation.framework in Frameworks */,
@@ -90,6 +96,8 @@
 		6E7E0E4C15DAC93900284F57 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				BAAE88321742565F00C42FB8 /* EventKit.framework */,
+				BAAE88331742565F00C42FB8 /* EventKitUI.framework */,
 				BA8220E117367AAB00F0853C /* AudioToolbox.framework */,
 				6EADAD0315DAADB4000F3472 /* CoreMotion.framework */,
 				6E7E0E6A15DAC93900284F57 /* CoreLocation.framework */,

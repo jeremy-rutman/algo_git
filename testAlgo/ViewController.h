@@ -10,6 +10,7 @@
 #import <CoreLocation/CoreLocation.h>
 #import <CoreMotion/CoreMotion.h>
 #import "MainService.h"
+#import <Foundation/Foundation.h>
 
 UIBackgroundTaskIdentifier bgTask;
 CLLocationManager *locationManager;
@@ -28,7 +29,8 @@ Boolean AGps_state;
 	AlgoVector *velocityVector_5samples;
 	AlgoVector *velocityVector_10samples;
     AlgoLocVector * algoLocVector;
-    
+    NSString *logFileName;
+
     
  //   IBOutlet UIButton *my_very_first_button;
     
@@ -83,13 +85,21 @@ Boolean AGps_state;
 +(void) writeToTextFile;
 -(void) writeToLogFile:(NSString*)aString aFileName:(NSString *)filename;
 -(void) integrateAcceleration:(AlgoVector*)aVector Nsamples:(int)N_samples;
-
+-(void)viewDidLoad;
+- (void)viewDidUnload;
+- (void) segmentAction:(id)sender;
+- (void)detectDriving:  (AlgoVector *)accelerationVector anOrientationVector:(AlgoVector *)orientationVector;
 //+(void) displayContent;
 
 //-(NSString *) aString;
 
 
+- (void)viewDidLoad2 ;
+- (void) pickOne:(id)sender;
+- (void)dealloc ;
+
 @end
+
 
 @interface Sound : NSObject
 
