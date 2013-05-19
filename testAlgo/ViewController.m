@@ -6,6 +6,7 @@
 //  Copyright (c) 2012 itaidddd@gmail.com. All rights reserved.
 //
 //
+//this is a change i would like to undo
 //DONE  get accurate timestamp and base velocity on actual integral (dont assume steady sample rate)
 //state button
 //a change
