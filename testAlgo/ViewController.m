@@ -8,7 +8,7 @@
 //
 //DONE  get accurate timestamp and base velocity on actual integral (dont assume steady sample rate)
 //state button
-
+//a change
 //TODO
 //add Astd min thresholds to walking detector
 //dead reckoning
