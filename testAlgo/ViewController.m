@@ -7,13 +7,14 @@
 //
 //
 //DONE  get accurate timestamp and base velocity on actual integral (dont assume steady sample rate)
-//TODO
 //state button
+
+//TODO
 //add Astd min thresholds to walking detector
 //dead reckoning
 //parallel parking
 //driver behavior
-//walking detection
+//better walking detection
 
 #import <CoreMotion/CoreMotion.h>
 #import "ViewController.h"
