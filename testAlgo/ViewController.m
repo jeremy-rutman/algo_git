@@ -27,7 +27,8 @@
 //....to do this one could use mass from the vehicle type and acceleration for F=mA
 //...'snapshot' plugs into car obd http://www.progressive.com/newsroom/images/snapshot_report_final_070812.pdf - look at acceleration, braking, turning, cornering - and speed!
 //The American Association of Equipment Management Professionals’ telematics data standard focuses on location and three additional data points: distance traveled, driving time, and fuel consumption. The organization finds that these four data elements support 80% of their constituency’s reporting needs.See Bennink, page 1. Speed, acceleration, deceleration, and braking are less standard elements but are also commonly used in UBI.
-
+//For example, braking events may be identified when certain gravitational forces (gforce) are registered and/or decelerations occur over a prescribed duration (e.g., Kantowitz definedbraking events by a 0.2 g-force deceleration rate over five seconds (http://www.casact.org/pubs/forum/12wforumpt2/Weiss-Smollik.pdf)
+//if we use gps - then 'driving while talking' and 'driving while smsing' can be accurately detected (since driving is accurately detected by gps even when playing with phone)
 
 //better walking detection
 
