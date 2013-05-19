@@ -13,7 +13,21 @@
 //add Astd min thresholds to walking detector
 //dead reckoning
 //parallel parking
+
 //driver behavior
+//from http://www.oryarok.org.il/webfiles/audio_files/safety_caralation_MAtzeget.pdf :
+//"The specific IVDR system evaluated in this paper was developed by DriveDiagnostics LTD"
+//'risk index' is number of aggressive maneuvers per 10 driving hours....
+//The identified maneuvers are also
+//classified in terms of their severity based on parameters of the detailed trajectory of
+//the vehicle during the maneuver, such as the maneuver duration, extent of sudden
+//changes during the maneuver, the speed it is performed at and the magnitude of the
+//forced applied on the vehicle.
+//....to do this one could use mass from the vehicle type and acceleration for F=mA
+//...'snapshot' plugs into car obd http://www.progressive.com/newsroom/images/snapshot_report_final_070812.pdf - look at acceleration, braking, turning, cornering - and speed!
+//The American Association of Equipment Management Professionals’ telematics data standard focuses on location and three additional data points: distance traveled, driving time, and fuel consumption. The organization finds that these four data elements support 80% of their constituency’s reporting needs.See Bennink, page 1. Speed, acceleration, deceleration, and braking are less standard elements but are also commonly used in UBI.
+
+
 //better walking detection
 
 #import <CoreMotion/CoreMotion.h>
@@ -311,11 +325,11 @@ NSString *claimedUserState;
  	//generate a logfile name from the date and time
 	
 	
-	SystemSoundID soundID;
-	NSString *soundPath = [[NSBundle mainBundle] pathForResource:@"sound2" ofType:@"wav"];
-	NSURL *soundUrl = [NSURL fileURLWithPath:soundPath];
-	AudioServicesCreateSystemSoundID ((CFURLRef)soundUrl, &soundID);
-	AudioServicesPlaySystemSound(soundID);
+//	SystemSoundID soundID;
+//	NSString *soundPath = [[NSBundle mainBundle] pathForResource:@"sound2" ofType:@"wav"];
+//	NSURL *soundUrl = [NSURL fileURLWithPath:soundPath];
+//	AudioServicesCreateSystemSoundID ((CFURLRef)soundUrl, &soundID);
+//	AudioServicesPlaySystemSound(soundID);
 	
 	
 	NSString *resultString = [[NSString alloc]
@@ -581,13 +595,13 @@ NSString *claimedUserState;
 			
 			//play system sound
 			SystemSoundID soundID;
-			
+			NSString *soundPath= [[NSBundle mainBundle] pathForResource:@"zinger1" ofType:@"mp3"];
 			if(mWalking) {
-				NSString *soundPath = [[NSBundle mainBundle] pathForResource:@"zinger1" ofType:@"mp3"];
+				soundPath = [[NSBundle mainBundle] pathForResource:@"zinger2" ofType:@"mp3"];
 			}
 			else if(mDriving)
 			{
-				NSString *soundPath = [[NSBundle mainBundle] pathForResource:@"zinger2" ofType:@"mp3"];
+				soundPath = [[NSBundle mainBundle] pathForResource:@"zinger1" ofType:@"mp3"];
 			}
 			NSURL *soundUrl = [NSURL fileURLWithPath:soundPath];
 			AudioServicesCreateSystemSoundID ((CFURLRef)soundUrl, &soundID);

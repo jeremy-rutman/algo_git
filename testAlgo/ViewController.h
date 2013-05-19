@@ -86,17 +86,17 @@ Boolean AGps_state;
 -(void) writeToLogFile:(NSString*)aString aFileName:(NSString *)filename;
 -(void) integrateAcceleration:(AlgoVector*)aVector Nsamples:(int)N_samples;
 -(void)viewDidLoad;
-- (void)viewDidUnload;
-- (void) segmentAction:(id)sender;
+//- (void)viewDidUnload;
+//- (void) segmentAction:(id)sender;
 - (void)detectDriving:  (AlgoVector *)accelerationVector anOrientationVector:(AlgoVector *)orientationVector;
 //+(void) displayContent;
 
 //-(NSString *) aString;
 
 
-- (void)viewDidLoad2 ;
-- (void) pickOne:(id)sender;
-- (void)dealloc ;
+//- (void)viewDidLoad2 ;
+//- (void) pickOne:(id)sender;
+//- (void)dealloc ;
 
 @end
 
