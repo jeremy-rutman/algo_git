@@ -29,7 +29,7 @@ Boolean AGps_state;
 	AlgoVector *velocityVector_5samples;
 	AlgoVector *velocityVector_10samples;
     AlgoLocVector * algoLocVector;
-    NSString *logFileName;
+    NSString *global_logFileName;
 
     
  //   IBOutlet UIButton *my_very_first_button;
@@ -78,18 +78,21 @@ Boolean AGps_state;
 @property (strong, nonatomic) IBOutlet UILabel *resultLabelV10y;
 @property (strong, nonatomic) IBOutlet UILabel *resultLabelV10z;
 @property (strong, nonatomic) IBOutlet UILabel *resultLabelV10h;
+@property (strong, nonatomic) IBOutlet UILabel *resultLabeldOx_dt;
 
 - (IBAction)butttonDIDpressed:(id)sender;
 -(void)writeStringToFile:(NSString*)aString;
 //Method writes a string to a text file
 +(void) writeToTextFile;
 -(void) writeToLogFile:(NSString*)aString aFileName:(NSString *)filename;
--(void) integrateAcceleration:(AlgoVector*)aVector Nsamples:(int)N_samples;
+-(AlgoVector *) integrateAcceleration:(AlgoVector*)aVector Nsamples:(int)N_samples;
 -(void)viewDidLoad;
 //- (void)viewDidUnload;
 //- (void) segmentAction:(id)sender;
 - (void)detectDriving:  (AlgoVector *)accelerationVector anOrientationVector:(AlgoVector *)orientationVector;
-//+(void) displayContent;
+-(double) calc_dOx_dt ;
+
+    //+(void) displayContent;
 
 //-(NSString *) aString;
 

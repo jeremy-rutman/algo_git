@@ -21,11 +21,13 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "testAlgo/ViewController.m"
-         timestampString = "390655299.067443"
+         timestampString = "390751545.02378"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "139"
-         endingLineNumber = "139">
+         startingLineNumber = "141"
+         endingLineNumber = "141"
+         landmarkName = "-userAccelerationInReferenceFrame"
+         landmarkType = "5">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "No"
@@ -37,21 +39,21 @@
          endingColumnNumber = "9223372036854775807"
          startingLineNumber = "92"
          endingLineNumber = "92"
-         landmarkName = "@interface ViewController"
-         landmarkType = "2">
+         landmarkName = "-detectDriving:anOrientationVector:"
+         landmarkType = "4">
       </FileBreakpoint>
       <FileBreakpoint
          shouldBeEnabled = "Yes"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "testAlgo/ViewController.m"
-         timestampString = "390655299.067443"
+         timestampString = "390828643.313201"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "853"
-         endingLineNumber = "853"
-         landmarkName = "@implementation ViewController"
-         landmarkType = "3">
+         startingLineNumber = "905"
+         endingLineNumber = "905"
+         landmarkName = "-detectDriving:anOrientationVector:"
+         landmarkType = "5">
       </FileBreakpoint>
    </FileBreakpoints>
    <ExceptionBreakpoints>
