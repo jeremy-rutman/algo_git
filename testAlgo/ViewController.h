@@ -25,9 +25,10 @@ Boolean AGps_state;
     AlgoVector *accVectorWC;
     AlgoVector *accVectorWC_unbiased;
     AlgoVector *orientationVector;
-	AlgoVector *velocityVector_2samples;
-	AlgoVector *velocityVector_5samples;
-	AlgoVector *velocityVector_10samples;
+	AlgoVector *velocityVector_1s;
+	AlgoVector *velocityVector_2s;
+	AlgoVector *velocityVector_5s;
+	AlgoVector *velocityVector_10s;
     AlgoLocVector * algoLocVector;
     NSString *global_logFileName;
 
@@ -91,6 +92,8 @@ Boolean AGps_state;
 //- (void) segmentAction:(id)sender;
 - (void)detectDriving:  (AlgoVector *)accelerationVector anOrientationVector:(AlgoVector *)orientationVector;
 -(double) calc_dOx_dt ;
+-(void) displayContent:(NSString*)fName;
+
 
     //+(void) displayContent;
 

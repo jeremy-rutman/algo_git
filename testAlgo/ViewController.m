@@ -1,3 +1,7 @@
+//#define NO_IPHONE_ATTACHED
+//#define DEBUGJ
+//#define READ_FILE
+
 //
 //  ViewController.m
 //  testAlgo
@@ -6,12 +10,12 @@
 //  Copyright (c) 2012 itaidddd@gmail.com. All rights reserved.
 //
 //
-//this is a change i would like to undo
 //DONE  get accurate timestamp and base velocity on actual integral (dont assume steady sample rate)
 //state button
-//a change
 
 //TODO
+// check if runs in background
+//check logs for false positives/negatives
 //add Astd min thresholds to walking detector
 //dead reckoning
 //parallel parking
@@ -38,6 +42,8 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <AudioToolbox/AudioServices.h>
 
+
+
 //#import "AddTwoTextFieldViewController.h"
 //#import "AddTwoTextFieldAppDelegate.h"
 
@@ -52,12 +58,11 @@ typedef struct tag1 {
      double Oz;
      */} Cdatastructure;
 
-
-
 typedef struct tag2
 {
 	int mNfields;
-	
+	double mMaxAcceptedAcceleration;
+
 	int mDuration_of_driving_analysis;
 	int mN_samples_in_driving_analysis;
 	int mN_samples_in_1s_analysis;
@@ -72,7 +77,9 @@ typedef struct tag2
 	double mOzStd2sMinWalkingThreshold;
 	
 //driving thresholds
-	double mdriving_velocity_threshold;
+	double mdriving_velocity_threshold_2s;
+	double mdriving_velocity_threshold_5s;
+	double mdriving_velocity_threshold_10s;
 	double mVzStdMaxDrivingThreshold;
 	double mVzStdMinDrivingThreshold;
 	double mVzAvgMaxDrivingThreshold;
@@ -81,6 +88,11 @@ typedef struct tag2
 	double mOyStd2sMinDrivingThreshold;
 	double mOzStd2sMaxDrivingThreshold;
 	double mOzStd2sMinDrivingThreshold;
+	double time_of_last_mdriving_velocity_threshold_2s;
+	double time_of_last_mdriving_velocity_threshold_5s;
+	double time_of_last_mdriving_velocity_threshold_10s;
+	double mDuration_in_which_to_accept_high_velocities;
+		
 	
 //crazy driver thresholds
 	double crazy_driver_velocity_threshold;
@@ -107,7 +119,7 @@ typedef struct tag2
 	int mTimeofLastDrivingDetection;
 	int mtime_after_walking_to_filter_driving;
 	double mExpectationTimeBetweenDrivingDetections;
-	double mSamplingRate;
+	int mSamplingRate; //samples per second
 	double mBeta;
 	double Vhmax;
 	//	double Vh2max;
@@ -157,14 +169,12 @@ static int jmN_samples_taken=0;
 @implementation ViewController
 
 
-//#define NO_IPHONE_ATTACHED
 
 BOOL debug;
 long acc_i=0;
 NSString *popUpString;
 
 -(void) getData{
-    
     while (YES) {
 		//NSLog(@"1");
         if (!debug &&  [UIApplication sharedApplication].applicationState == UIApplicationStateBackground ){
@@ -172,17 +182,13 @@ NSString *popUpString;
             [locationManager stopUpdatingLocation];
             [locationManager startMonitoringSignificantLocationChanges];
         }
-        
     }
-    
-	
-    
 }
+
 float batteryLevel=0;
 int totalSamples;
 Boolean isDriving;
 NSString *claimedUserState;
-
 
 - (void)viewDidLoad
 {
@@ -209,7 +215,7 @@ NSString *claimedUserState;
     
     [[UIDevice currentDevice] setBatteryMonitoringEnabled:YES];
 	
-    NSLog(@"starting - didload");
+    NSLog(@"starting - 1");
 	
 	SystemSoundID soundID;
 	NSString *soundPath = [[NSBundle mainBundle] pathForResource:@"sound2" ofType:@"wav"];
@@ -223,24 +229,38 @@ NSString *claimedUserState;
 	_resultLabel0.text = resultString;
 	
 	
-    
+#ifdef DEBUG
+	NSLog(@"starting - 2");
+#endif
+
 #ifdef NO_IPHONE_ATTACHED
+	NSLog(@"no iphone attached");
+
 	while(1)
 	{
 		jstructure.mSamplingRate=10.0;
 		
-	accVectorWC->x = 1.0+ (double)(arc4random() % 10)/100.0;
-	accVectorWC->y = 2.0+(double)(arc4random() % 10)/100.0;
-	accVectorWC->z
+		accVectorWC->x = 1.0+ (double)(arc4random() % 10)/100.0;
+		accVectorWC->y = 2.0+(double)(arc4random() % 10)/100.0;
+		accVectorWC->z
 		= 3.0+(double)(arc4random() % 10)/100.0;
-	orientationVector->x=4+ (double)(arc4random() % 10)/100.0;
-	orientationVector->y=5+ (double)(arc4random() % 10)/100.0;
-	orientationVector->z=6+ (double)(arc4random() % 10)/100.0;
-	[self detectDriving:accVectorWC anOrientationVector:orientationVector ];
-	//	[NSThread sleepForTimeInterval:100];
-		usleep(2000);
+		orientationVector->x=4+ (double)(arc4random() % 10)/100.0;
+		orientationVector->y=5+ (double)(arc4random() % 10)/100.0;
+		orientationVector->z=6+ (double)(arc4random() % 10)/100.0;
+		[self detectDriving:accVectorWC anOrientationVector:orientationVector ];
+		//	[NSThread sleepForTimeInterval:100];
+		usleep(100000);
 	}
 #endif
+	
+	
+#ifdef READ_FILE
+	NSLog(@"reading file");
+	[self displayContent:@"logfile.txt" ];
+	exit(EXIT_SUCCESS);
+		
+#endif
+	
 	jstructure.mSamplingRate=10;  //make sure this agrees with no-iphone sampling rate
 	motionManager = [[CMMotionManager alloc] init];
     [motionManager setAccelerometerUpdateInterval:1.0/jstructure.mSamplingRate];
@@ -290,18 +310,21 @@ NSString *claimedUserState;
 
 
 // new function taking inputs of algovectors for orientation, acceleration so i can fake those if there is no iphone handy
-- (void)detectDriving:  (AlgoVector *)theaccelerationVector anOrientationVector:(AlgoVector *)theOrientationVector
+- (void)detectDriving:  (AlgoVector *)theAccelerationVector anOrientationVector:(AlgoVector *)theOrientationVector
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
-    algoDetection = [[AlgoDetection alloc] init];
-    accVector = [[AlgoVector alloc] init];
-    orientationVector = theOrientationVector;
+//    algoDetection = [[AlgoDetection alloc] init];
+//    accVector = [[AlgoVector alloc] init];
+//    orientationVector = theOrientationVector;
 	
-    accVectorWC_unbiased= [[AlgoVector alloc] init];
-	velocityVector_2samples=[[AlgoVector alloc] init];
-	velocityVector_5samples=[[AlgoVector alloc] init];
-	velocityVector_10samples=[[AlgoVector alloc] init];
+	AlgoVector * theaccVectorWC_unbiased= [[AlgoVector alloc] init];
+//    accVectorWC_unbiased= [[AlgoVector alloc] init];
+
+	velocityVector_1s=[[AlgoVector alloc] init];
+	velocityVector_2s=[[AlgoVector alloc] init];
+	velocityVector_5s=[[AlgoVector alloc] init];
+	velocityVector_10s=[[AlgoVector alloc] init];
 	
     algoLocVector = [[AlgoLocVector alloc] init];
     locationManager = [[CLLocationManager alloc] init];
@@ -325,8 +348,9 @@ NSString *claimedUserState;
 	__block double dOx_dt=0;
 	__block int mWalking=0;
 	__block int mDriving=0;
-	
-	//jeremy
+	__block Boolean mdriving_velocity_threshold_2s_in_recent_history;
+	__block Boolean mdriving_velocity_threshold_5s_in_recent_history;
+	__block Boolean mdriving_velocity_threshold_10s_in_recent_history;
 	
     locationManager.delegate = self;
     locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers;//kCLLocationAccuracyKilometer;
@@ -339,19 +363,17 @@ NSString *claimedUserState;
     
     [[UIDevice currentDevice] setBatteryMonitoringEnabled:YES];
 	
- 	//generate a logfile name from the date and time
-	
-	
-//	SystemSoundID soundID;
-//	NSString *soundPath = [[NSBundle mainBundle] pathForResource:@"sound2" ofType:@"wav"];
-//	NSURL *soundUrl = [NSURL fileURLWithPath:soundPath];
-//	AudioServicesCreateSystemSoundID ((CFURLRef)soundUrl, &soundID);
-//	AudioServicesPlaySystemSound(soundID);
-	
-	
 	isDriving=0;
-//	NSLog(@"sample no. %d/%d",jmN_samples_taken,jstructure.mN_samples_in_driving_analysis );
-
+	
+	//impose limits on measured data 
+	if(theAccelerationVector->x>jstructure.mMaxAcceptedAcceleration) theAccelerationVector->x=jstructure.mMaxAcceptedAcceleration;
+	if(theAccelerationVector->y>jstructure.mMaxAcceptedAcceleration) theAccelerationVector->y=jstructure.mMaxAcceptedAcceleration;
+	if(theAccelerationVector->z>jstructure.mMaxAcceptedAcceleration) theAccelerationVector->z=jstructure.mMaxAcceptedAcceleration;
+	if(theAccelerationVector->x<-jstructure.mMaxAcceptedAcceleration) theAccelerationVector->x=-jstructure.mMaxAcceptedAcceleration;
+	if(theAccelerationVector->y<-jstructure.mMaxAcceptedAcceleration) theAccelerationVector->y=-jstructure.mMaxAcceptedAcceleration;
+	if(theAccelerationVector->z<-jstructure.mMaxAcceptedAcceleration) theAccelerationVector->z=jstructure.mMaxAcceptedAcceleration;
+	
+	
 	
 	
 	//initialize values if first time thru
@@ -365,13 +387,15 @@ NSString *claimedUserState;
 		jstructure.mN_samples_in_2s_analysis=2*jstructure.mSamplingRate;
 		jstructure.mN_samples_in_5s_analysis=5*jstructure.mSamplingRate;
 		jstructure.mN_samples_in_20s_analysis=20*jstructure.mSamplingRate;
-		
+
 		jstructure.mVzStdMinWalkingThreshold=1.0; //.08
 		jstructure.mOyStd2sMinWalkingThreshold=10.0;
 		jstructure.mOyStd20sMinWalkingThreshold=10.0;
 		jstructure.mOzStd2sMinWalkingThreshold=5.0;
 		
-		jstructure.mdriving_velocity_threshold=2.5; //was 0.5
+		jstructure.mdriving_velocity_threshold_2s=0.04; //was 0.5  V10h  reaches abt .016kkk
+		jstructure.mdriving_velocity_threshold_5s=0.03; //was 0.5  V10h  reaches abt .016kkk
+		jstructure.mdriving_velocity_threshold_10s=0.015; //was 0.5  V10h  reaches abt .016kkk
 		jstructure.mVzStdMaxDrivingThreshold=0.5;
 		jstructure.mVzAvgMaxDrivingThreshold=0.7;
 		jstructure.mOyStd20sMaxDrivingThreshold=7.0;
@@ -380,13 +404,16 @@ NSString *claimedUserState;
 		
 		jstructure.mOzStd2sMaxDrivingThreshold=5.0;
 		jstructure.mOzStd2sMinDrivingThreshold=0.2;
+		jstructure.time_of_last_mdriving_velocity_threshold_2s=0;
+		jstructure.time_of_last_mdriving_velocity_threshold_5s=0;
+		jstructure.time_of_last_mdriving_velocity_threshold_10s=0;
+		jstructure.mDuration_in_which_to_accept_high_velocities=5; //look at last 5 sec
 		
 		//crazy driver profiling
-		jstructure.crazy_driver_velocity_threshold=1; //was 0.5
-		jstructure.crazy_driver_dOx_dt_threshold=40; //was 0.5
+		jstructure.crazy_driver_velocity_threshold=1.5; //was 0.5
+		jstructure.crazy_driver_dOx_dt_threshold=350; //was 0.5
 		jstructure.crazy_driver_Ah_threshold=1; //was 0.5
 
-		
 		jstructure.mEnough_driving_samples=0;  //0 false, 1 true
 		jstructure.mBeta=0.95; //in samples/second
 		jstructure.V[0]=0.0;jstructure.V[1]=0.0;jstructure.V[2]=0.0;
@@ -396,6 +423,7 @@ NSString *claimedUserState;
 		jstructure.mTimeofLastDrivingDetection=0;
 		jstructure.mTimeofLastWalkingDetection=0;
 		jstructure.mExpectationTimeBetweenDrivingDetections=5*60; //if 5 minutes or less from last driving detection and there is no walking detected, we are still driving
+		jstructure.mMaxAcceptedAcceleration=10;
 		
 		//			[initWithPath (NSString*) @""];
 		
@@ -408,7 +436,7 @@ NSString *claimedUserState;
 		//generate a logfile name from the date and time
 		NSDate *today = [NSDate date];
 		NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
-		[dateFormat setDateFormat:@"ddMMYY.HHmm"];
+		[dateFormat setDateFormat:@"ddMMYY_HHmm"];
 		NSString *dateString = [dateFormat stringFromDate:today];
 		global_logFileName=[NSString stringWithFormat:@"%@.txt",dateString];
 		jstructure.thelogFileName=[NSString stringWithFormat:@"%@.txt",dateString];
@@ -420,12 +448,18 @@ NSString *claimedUserState;
 		[self writeToLogFile:dateString aFileName:jstructure.thelogFileName];
 		[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz state\n" aFileName:jstructure.thelogFileName];
 		
+		[self writeToLogFile:dateString aFileName:@"logfile.txt"];
+		[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz state\n" aFileName:@"logfile.txt"];
+		
 		claimedUserState=@"W";
 		
 	}
+	#ifdef DEBUGJ
 	NSLog(@"input %d/%d:Ax %.2f Ay %.2f Az %.2f Ox %.2f Oy %.2f Oz %.2f",jmN_samples_taken,jstructure.mN_samples_in_driving_analysis,
-		  theaccelerationVector->x,theaccelerationVector->y,theaccelerationVector->z,orientationVector->x,orientationVector->y,orientationVector->z);
-
+		  theAccelerationVector->x,theAccelerationVector->y,theAccelerationVector->z,theOrientationVector->x,theOrientationVector->y,theOrientationVector->z);
+	#endif
+	
+//	NSLog(@"sampling rate %d",jstructure.mSamplingRate);
 	jmN_samples_taken++;
 	if (jmN_samples_taken>32000) jmN_samples_taken=jstructure.mN_samples_in_driving_analysis+1;
 	
@@ -436,19 +470,23 @@ NSString *claimedUserState;
 	Ccalc_datastructure_avg2(1,jstructure.mN_samples_in_driving_analysis,jstructure.mN_samples_in_driving_analysis,&ay_offset);
 	Ccalc_datastructure_avg2(2,jstructure.mN_samples_in_driving_analysis,jstructure.mN_samples_in_driving_analysis,&az_offset);
 	
-	accVectorWC_unbiased->x=accVectorWC->x-ax_offset;
-	accVectorWC_unbiased->y=accVectorWC->y-ay_offset;
-	accVectorWC_unbiased->z=accVectorWC->z-az_offset;
+	theaccVectorWC_unbiased->x=theAccelerationVector->x-ax_offset;
+	theaccVectorWC_unbiased->y=theAccelerationVector->y-ay_offset;
+	theaccVectorWC_unbiased->z=theAccelerationVector->z-az_offset;
+
+#ifdef DEBUGJ
+	NSLog(@"Ax %.2f Axc %.2f Ay %.2f Ayc %.2f",theAccelerationVector->x,theaccVectorWC_unbiased->x,theAccelerationVector->y,theaccVectorWC_unbiased->y);
+#endif
 	
-	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[0]=accVectorWC->x;
-	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[1]=accVectorWC->y;
-	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[2]=accVectorWC->z;
-	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[3]=accVectorWC_unbiased->x;
-	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[4]=accVectorWC_unbiased->y;
-	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[5]=accVectorWC_unbiased->z;
-	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[6]=orientationVector->x;
-	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[7]=orientationVector->y;
-	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[8]=orientationVector->z;
+	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[0]=theAccelerationVector->x;
+	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[1]=theAccelerationVector->y;
+	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[2]=theAccelerationVector->z;
+	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[3]=theaccVectorWC_unbiased->x;
+	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[4]=theaccVectorWC_unbiased->y;
+	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[5]=theaccVectorWC_unbiased->z;
+	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[6]=theOrientationVector->x;
+	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[7]=theOrientationVector->y;
+	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[8]=theOrientationVector->z;
 	jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[9]=timeStamp;
 	
 	//make this circular buffer for faster performance
@@ -475,14 +513,9 @@ NSString *claimedUserState;
 	
 	if (jstructure.mEnough_driving_samples)
 	{
-	//	logFileName=jstructure.thelogFileName;
-	//watch out for conflict between requested sampling rate and real sampling rate as calculated below
-		jstructure.mSamplingRate=jstructure.mN_samples_in_driving_analysis/(jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[9]-jstructure.mSensor_history[0].vals[9]);
-		
-		//	NSLog(@ "samplingrate %f %f %f", jstructure.mSamplingRate,jstructure.mSensor_history[0].vals[9],jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-1].vals[9]);
 		
 		NSString *resultString = [[NSString alloc]
-								  initWithFormat: @"time %.1f",timeStamp];
+								  initWithFormat: @"t:%.1f",timeStamp];
 		_resultLabel0.text = resultString;
 		
 		//smoothed  velocity components from acceleration and history
@@ -491,37 +524,27 @@ NSString *claimedUserState;
 //		jstructure.V[1]=jstructure.V[1]*jstructure.mBeta+accVectorWC_unbiased->y/jstructure.mSamplingRate;
 //		jstructure.V[2]=jstructure.V[2]*jstructure.mBeta+accVectorWC_unbiased->z/jstructure.mSamplingRate;
 		
-		
-		// horizontal component of smoothed velocity
-		//mVhCurrent=sqrt(jstructure.V[0]*jstructure.V[0]+jstructure.V[1]*jstructure.V[1]);
-		//	if(mVhCurrent>jstructure.Vhmax) jstructure.Vhmax=mVhCurrent;
-		
 		//find velocities using integration over different numbers of samples
-		// V= sum(A*dt)
-		[self integrateAcceleration:velocityVector_2samples Nsamples:2];
-		[self integrateAcceleration:velocityVector_5samples Nsamples:5];
-		[self integrateAcceleration:velocityVector_10samples Nsamples:10];
+		[self integrateAcceleration:velocityVector_1s Nsamples:(1*jstructure.mSamplingRate)];
+		[self integrateAcceleration:velocityVector_2s Nsamples:(2*jstructure.mSamplingRate)];
+		[self integrateAcceleration:velocityVector_5s Nsamples:(5*jstructure.mSamplingRate)];
+		[self integrateAcceleration:velocityVector_10s Nsamples:(10*jstructure.mSamplingRate)];
 
-		NSLog(@"velocity 5 x %.3f y %.3f z %.3f",velocityVector_2samples->x,velocityVector_2samples->y,velocityVector_2samples->z);
-		jstructure.V[0]=velocityVector_2samples->x;
-		jstructure.V[1]=velocityVector_2samples->y;
-		jstructure.V[2]=velocityVector_2samples->z;
-//		NSLog(@"Vx %.3f Vy %.3f Vz %.3f",jstructure.V[0],jstructure.V[1],jstructure.V[2]);
-
-		double V2h=sqrt(velocityVector_2samples->x*velocityVector_2samples->x+velocityVector_2samples->y*velocityVector_2samples->y);
-		double V5h=sqrt(velocityVector_5samples->x*velocityVector_5samples->x+velocityVector_5samples->y*velocityVector_5samples->y);
-		double V10h=sqrt(velocityVector_10samples->x*velocityVector_10samples->x+velocityVector_10samples->y*velocityVector_10samples->y);
-		mVhCurrent=V10h;
+#ifdef DEBUGJ
+		NSLog(@"velocity 2s (%.3f %.3f %.3f)",velocityVector_2s->x,velocityVector_2s->y,velocityVector_2s->z);
+		NSLog(@"velocity 5s (%.3f %.3f %.3f)",velocityVector_5s->x,velocityVector_5s->y,velocityVector_5s->z);
+		NSLog(@"velocity 10s (%.3f %.3f %.3f)",velocityVector_10s->x,velocityVector_10s->y,velocityVector_10s->z);
+	#endif
+		
+		double V2h=sqrt(velocityVector_2s->x*velocityVector_2s->x+velocityVector_2s->y*velocityVector_2s->y);
+		double V5h=sqrt(velocityVector_5s->x*velocityVector_5s->x+velocityVector_5s->y*velocityVector_5s->y);
+		double V10h=sqrt(velocityVector_10s->x*velocityVector_10s->x+velocityVector_10s->y*velocityVector_10s->y);
+		mVhCurrent=V5h;
 				
-		
-//		NSLog(@"raw integration 2 samples Vx %.3f Vy %.3f Vz %.3f",velocityVector_2samples->x,velocityVector_2samples->y,velocityVector_2samples->z);
-//		NSLog(@"raw integration 5 samples Vx %.3f Vy %.3f Vz %.3f",velocityVector_5samples->x,velocityVector_5samples->y,velocityVector_5samples->z);
-//		NSLog(@"raw integration 10 samples Vx %.3f Vy %.3f Vz %.3f",velocityVector_10samples->x,velocityVector_10samples->y,velocityVector_10samples->z);
-		
-		// calculate Vz avg and std for 2s of samples - up/down velocity
+		// calculate Vz (up/down velocity) avg and std for 2s of samples - 
 		mVzStd=0;
 		mVzAvg=0;
-		jstructure.mVz[jstructure.mVzCount]=velocityVector_5samples->z; //use of 5 samples is arbitrary
+		jstructure.mVz[jstructure.mVzCount]=velocityVector_1s->z; //use of N samples is arbitrary - maybe find optimium?
 		for (i=0;i<jstructure.mN_samples_in_2s_analysis;i++)
 		{
 			mVzAvg+=jstructure.mVz[i];
@@ -606,11 +629,37 @@ NSString *claimedUserState;
 			jstructure.noInterveningWalkingFlag=FALSE;
 		}
 		else mWalking=0;
+#ifdef DEBUGJ
 		NSLog(@"walking criteria:mOystd2s  %d mOzstd2s %d mOzstd20s %d",mOy_std2s>jstructure.mOyStd2sMinWalkingThreshold,mOz_std2s>jstructure.mOzStd2sMinWalkingThreshold,mOy_std20s>jstructure.mOyStd20sMinWalkingThreshold);
+#endif
+		
+		if(V2h>jstructure.mdriving_velocity_threshold_2s)
+		{
+			jstructure.time_of_last_mdriving_velocity_threshold_2s=timeStamp;
+		}
+		if(timeStamp-jstructure.time_of_last_mdriving_velocity_threshold_2s<jstructure.mDuration_in_which_to_accept_high_velocities) mdriving_velocity_threshold_2s_in_recent_history=TRUE;
+		else mdriving_velocity_threshold_2s_in_recent_history=FALSE;
+ 
+		if(V5h>jstructure.mdriving_velocity_threshold_5s)
+		{
+			jstructure.time_of_last_mdriving_velocity_threshold_5s=timeStamp;
+		}
+		if(timeStamp-jstructure.time_of_last_mdriving_velocity_threshold_5s<jstructure.mDuration_in_which_to_accept_high_velocities) mdriving_velocity_threshold_5s_in_recent_history=TRUE;
+		else mdriving_velocity_threshold_5s_in_recent_history=FALSE;
 
+		if(V10h>jstructure.mdriving_velocity_threshold_10s)
+		{
+			jstructure.time_of_last_mdriving_velocity_threshold_10s=timeStamp;
+		}
+		if(timeStamp-jstructure.time_of_last_mdriving_velocity_threshold_10s<jstructure.mDuration_in_which_to_accept_high_velocities) mdriving_velocity_threshold_10s_in_recent_history=TRUE;
+		else mdriving_velocity_threshold_10s_in_recent_history=FALSE;
+
+		
 		//are we driving??
 		if (!mWalking&&
-			mVhCurrent>jstructure.mdriving_velocity_threshold &&
+			mdriving_velocity_threshold_2s_in_recent_history &&
+			mdriving_velocity_threshold_5s_in_recent_history &&
+			mdriving_velocity_threshold_10s_in_recent_history &&
 			(timeStamp-jstructure.mTimeofLastWalkingDetection)>jstructure.mtime_after_walking_to_filter_driving &&
 			mVzStd<jstructure.mVzStdMaxDrivingThreshold &&
 			mVzAvg<jstructure.mVzAvgMaxDrivingThreshold &&
@@ -628,10 +677,13 @@ NSString *claimedUserState;
 			popUpString = [NSString stringWithFormat:@"jeremy thinks - driving"];
 			//playHonk();
 		}
-		else mDriving=0;		
-		NSLog(@"driving criteria:mVh %d time %d mVzstd %d mVzavg %d mOystd20 %d mOystd2< %d mOystd2> %d mOzstd2> %d mOzstd2 < %d",mVhCurrent>jstructure.mdriving_velocity_threshold,(timeStamp-jstructure.mTimeofLastWalkingDetection)>jstructure.mtime_after_walking_to_filter_driving,mVzStd<jstructure.mVzStdMaxDrivingThreshold,mVzAvg<jstructure.mVzAvgMaxDrivingThreshold,mOy_std20s<jstructure.mOyStd20sMaxDrivingThreshold,mOy_std2s<jstructure.mOyStd2sMaxDrivingThreshold ,mOy_std2s>jstructure.mOyStd2sMinDrivingThreshold ,mOz_std2s>jstructure.mOzStd2sMinDrivingThreshold,mOz_std2s<jstructure.mOzStd2sMaxDrivingThreshold    );
+		else mDriving=0;
+#ifdef DEBUGJ
+
+		NSLog(@"driving criteria:mVh %d time %d mVzstd %d mVzavg %d mOystd20 %d mOystd2< %d mOystd2> %d mOzstd2> %d mOzstd2 < %d",mVhCurrent>jstructure.mdriving_velocity_threshold_10s,(timeStamp-jstructure.mTimeofLastWalkingDetection)>jstructure.mtime_after_walking_to_filter_driving,mVzStd<jstructure.mVzStdMaxDrivingThreshold,mVzAvg<jstructure.mVzAvgMaxDrivingThreshold,mOy_std20s<jstructure.mOyStd20sMaxDrivingThreshold,mOy_std2s<jstructure.mOyStd2sMaxDrivingThreshold ,mOy_std2s>jstructure.mOyStd2sMinDrivingThreshold ,mOz_std2s>jstructure.mOzStd2sMinDrivingThreshold,mOz_std2s<jstructure.mOzStd2sMaxDrivingThreshold    );
 		
-		
+#endif
+
 		
 		//'nominal driving state' -  if less than some threshold since last driving detection, and no walking detected meantime, then we are still driving (or sitting in car...)
 		if (timeStamp-jstructure.mTimeofLastDrivingDetection<jstructure.mExpectationTimeBetweenDrivingDetections && jstructure.noInterveningWalkingFlag==TRUE)
@@ -641,7 +693,10 @@ NSString *claimedUserState;
 			//		double crazy_driver_velocity_threshold;
 			//		double crazy_driver_dOx_dt_threshold;
 			//		double crazy_driver_Ah_threshold;
+			#ifdef DEBUGJ
 			NSLog(@"nominal state is driving");
+			#endif
+			
 			NSString *crazydriverfile	=[[NSString alloc] initWithFormat: @"crazydriverfile.txt"];
 			NSString *crazylogString = [[NSString alloc] initWithFormat: @""];
 										
@@ -685,29 +740,19 @@ NSString *claimedUserState;
 			AudioServicesPlaySystemSound(soundID);
 		}
 		
-		//	LOGD("xoff %.3f yoff %.3f zoff %.3f",ax_offset,ay_offset,az_offset);
-		
-		// LOGD("c:after correction: awcx1 %.3f awcy %.3f awcz %.3f ",Awc[0]-ax_offset,Awc[1]-ax_offset,Awc[2]-ax_offset);
 		
 		
 		//WRITE TO LOG FILE
-		//	[ViewController writeStringToFile:@"test"];
-		//	[ViewController displayContent:@"myTextFile.txt"];
-		//	NSString *c=[[NSString alloc] initWithFormat:@"b"];
-		
-//		NSLog(@"before string creation");
-//		NSLog(@"userstate %@",claimedUserState);
-//		NSLog(@"%.2f %.2f %.2f %.2f %.2f %.2f %.2f %@",timeStamp,accVectorWC_unbiased->x,accVectorWC_unbiased->y,accVectorWC_unbiased->z,orientationVector->x,orientationVector->y,orientationVector->z,claimedUserState);
 		NSString *logString = [[NSString alloc]
-							   initWithFormat: @"%.2f %.2f %.2f %.2f %.2f %.2f %.2f %@",timeStamp,accVectorWC_unbiased->x,accVectorWC_unbiased->y,accVectorWC_unbiased->z,orientationVector->x,orientationVector->y,orientationVector->z,claimedUserState];
+							   initWithFormat: @"%.2f %.2f %.2f %.2f %.2f %.2f %.2f %@",timeStamp,theaccVectorWC_unbiased->x,theaccVectorWC_unbiased->y,theaccVectorWC_unbiased->z,theOrientationVector->x,theOrientationVector->y,theOrientationVector->z,claimedUserState];
 		NSLog(@"%@",logString);
-//global_logFileName=jstructure.thelogFileName;
+//		global_logFileName=jstructure.thelogFileName;
 //		NSLog(@"glogfilename:%@",global_logFileName);
 //		NSLog(@"slogfilename:%@",jstructure.thelogFileName);
 		global_logFileName	=[[NSString alloc] initWithFormat: @"logfile.txt"];
-
-	//	NSLog(@"DEBUG 1");
-//		NSLog(@"%@ to %@",logString,logFileName);
+#ifdef DEBUGJ
+		NSLog(@"string %@ to be written to %@",logString,global_logFileName);
+#endif		
 	[self writeToLogFile:logString aFileName:global_logFileName];
 //		NSLog(@"After writing");
 		//	[self displayContent:@"JeremyLog.txt"];
@@ -721,66 +766,63 @@ NSString *claimedUserState;
 		
 		//print WC accelerations
 		NSString *resultString1 = [[NSString alloc]
-								   initWithFormat: @"Ax %.2f", accVectorWC->x];
+								   initWithFormat: @"Ax %.2f", theAccelerationVector->x];
 		_resultLabel1.text = resultString1;
 		
 		//	[CategoryLbl setTextColor:[UIColor colorWithRed:(38/255.f) green:(171/255.f) blue:(226/255.f) alpha:1.0f]];
 		
 		NSString *resultString2 = [[NSString alloc]
-								   initWithFormat: @"Ay %.2f", accVectorWC->y];
+								   initWithFormat: @"Ay %.2f", theAccelerationVector->y];
 		_resultLabel2.text = resultString2;
 		NSString *resultString3 = [[NSString alloc]
-								   initWithFormat: @"Az %.2f", accVectorWC->z];
+								   initWithFormat: @"Az %.2f", theAccelerationVector->z];
 		_resultLabel3.text = resultString3;
 		
 		//print unbiased accelerations
 		//print orientations
 		NSString *resultString4 = [[NSString alloc]
-								   initWithFormat: @"Ax %.2f", accVectorWC_unbiased->x];
+								   initWithFormat: @"Ax %.2f", theaccVectorWC_unbiased->x];
 		_resultLabel4.text = resultString4;
 		NSString *resultString5 = [[NSString alloc]
-								   initWithFormat: @"Ay %.2f",accVectorWC_unbiased->y];
+								   initWithFormat: @"Ay %.2f",theaccVectorWC_unbiased->y];
 		_resultLabel5.text = resultString5;
 		NSString *resultString6 = [[NSString alloc]
-								   initWithFormat: @"Az %.2f",accVectorWC_unbiased->z];
+								   initWithFormat: @"Az %.2f",theaccVectorWC_unbiased->z];
 		_resultLabel6.text = resultString6;
-		
-		//		NSLog(@"wc2:Ax %lf Ay %lf Az %lf",accVectorWC->x,accVectorWC->y,accVectorWC->z);
-//		NSLog(@"wc3:Ax %lf Ay %lf Az %lf",accVectorWC_unbiased->x,accVectorWC_unbiased->y,accVectorWC_unbiased->z);
-		//	NSLog(@"offs:x %lf oy %lf Oz %lf",ax_offset,ay_offset,az_offset);
-		
 		
 		//print orientations
 		NSString *resultString7 = [[NSString alloc]
-								   initWithFormat: @"Ox %.1f", orientationVector->x];
+								   initWithFormat: @"Ox %.1f", theOrientationVector->x];
 		_resultLabel7.text = resultString7;
 		NSString *resultString8 = [[NSString alloc]
-								   initWithFormat: @"Oy %.1f",orientationVector->y];
+								   initWithFormat: @"Oy %.1f",theOrientationVector->y];
 		_resultLabel8.text = resultString8;
 		NSString *resultString9 = [[NSString alloc]
-								   initWithFormat: @"Oz %.1f",orientationVector->z];
+								   initWithFormat: @"Oz %.1f",theOrientationVector->z];
 		_resultLabel9.text = resultString9;
 		
-//		NSLog(@"Orientation:Ox %lf Oy %lf Oz %lf",orientationVector->x,orientationVector->y,orientationVector->z);
+//		NSLog(@"Orientation:Ox %lf Oy %lf Oz %lf",theOrientationVector->x,theOrientationVector->y,theOrientationVector->z);
 		
 		//print velocities
+/*
 		NSString *resultString10 = [[NSString alloc]
-									initWithFormat: @"Vx %.1f",jstructure.V[0]];
-		_resultLabel10.text = resultString10;
+									initWithFormat: @"V2x %.1f",velocityVector_2s->x];
+		_resultLabelV2x.text = resultString10;
 		NSString *resultString11 = [[NSString alloc]
-									initWithFormat: @"Vy %.1f",jstructure.V[1]];
-		_resultLabel11.text = resultString11;
+									initWithFormat: @"V2y %.1f",velocityVector_2s->y];
+		_resultLabelV2y.text = resultString11;
 		NSString *resultString12 = [[NSString alloc]
-									initWithFormat: @"Vz %.1f",jstructure.V[2]];
-		_resultLabel12.text = resultString12;
+									initWithFormat: @"V2z %.1f",velocityVector_2s->z];
+		_resultLabelV2z.text = resultString12;
 		
+ */
 		//print Vh, Vzavg, Vzstd
-		NSString *resultString13 = [[NSString alloc]
+/*		NSString *resultString13 = [[NSString alloc]
 									initWithFormat: @"Vh %.1f",mVhCurrent];
 		_resultLabel13.text = resultString13;
 		if(mVhCurrent>jstructure.mdriving_velocity_threshold)[_resultLabel13 setTextColor:[UIColor greenColor]];
 		else [_resultLabel13 setTextColor:[UIColor redColor]];
-		
+*/
 		
 		NSString *resultString14 = [[NSString alloc]
 									initWithFormat: @"VzAvg %.1f",mVzAvg];
@@ -803,8 +845,6 @@ NSString *claimedUserState;
 		else if(mOy_std2s<jstructure.mOyStd2sMaxDrivingThreshold) [_resultLabel16 setTextColor:[UIColor greenColor]];
 		else [_resultLabel16 setTextColor:[UIColor blackColor]];
 		
-		
-		
 		NSString *resultString17 = [[NSString alloc]
 									initWithFormat: @"Oystd20 %.1f",mOy_std20s];
 		_resultLabel17.text = resultString17;
@@ -812,16 +852,13 @@ NSString *claimedUserState;
 		else if(mOy_std20s<jstructure.mOyStd20sMaxDrivingThreshold)[_resultLabel17 setTextColor:[UIColor greenColor]];
 		else [_resultLabel17 setTextColor:[UIColor blackColor]];
 		
-		
 		if(mWalking)
 		{
 			NSString *resultString18 = [[NSString alloc]
 										initWithFormat: @"WALKING"];
-			
 			_resultLabel18.text = resultString18;
 		setTextColor:[UIColor greenColor];
 			timeOfLastNotification=[[NSDate date] timeIntervalSince1970];
-			
 		}
 		else if(mDriving)
 		{
@@ -848,49 +885,54 @@ NSString *claimedUserState;
 		else if(mOz_std2s<jstructure.mOzStd2sMaxDrivingThreshold)[_resultLabel19 setTextColor:[UIColor greenColor]];
 		else [_resultLabel19 setTextColor:[UIColor blackColor]];
 		
-		
-		
 		NSString *resultString20 = [[NSString alloc] initWithFormat: @""];
 		_resultLabel20.text = resultString20;
 		
-		NSString *resultString21 = [[NSString alloc] initWithFormat: @"V2x %.2f",velocityVector_2samples->x];
+		NSString *resultString21 = [[NSString alloc] initWithFormat: @"V2x %.2f",velocityVector_2s->x];
 		_resultLabelV2x.text = resultString21;
 		
-		resultString21 = [[NSString alloc] initWithFormat: @"V2y %.2f",velocityVector_2samples->y];
+		resultString21 = [[NSString alloc] initWithFormat: @"V2y %.3f",velocityVector_2s->y];
 		_resultLabelV2y.text = resultString21;
 		
-		resultString21 = [[NSString alloc] initWithFormat: @"V2z %.2f",velocityVector_2samples->z];
+		resultString21 = [[NSString alloc] initWithFormat: @"V2z %.3f",velocityVector_2s->z];
 		_resultLabelV2z.text = resultString21;
 		
-		resultString21 = [[NSString alloc] initWithFormat: @"V5x %.2f",velocityVector_5samples->x];
+		resultString21 = [[NSString alloc] initWithFormat: @"V5x %.3f",velocityVector_5s->x];
 		_resultLabelV5x.text = resultString21;
 		
-		resultString21 = [[NSString alloc] initWithFormat: @"V5y %.2f",velocityVector_5samples->y];
+		resultString21 = [[NSString alloc] initWithFormat: @"V5y %.3f",velocityVector_5s->y];
 		_resultLabelV5y.text = resultString21;
 		
-		resultString21 = [[NSString alloc] initWithFormat: @"V5z %.2f",velocityVector_5samples->z];
+		resultString21 = [[NSString alloc] initWithFormat: @"V5z %.3f",velocityVector_5s->z];
 		_resultLabelV5z.text = resultString21;
 		
-		resultString21 = [[NSString alloc] initWithFormat: @"V10x %.2f",velocityVector_10samples->x];
+		resultString21 = [[NSString alloc] initWithFormat: @"V10x %.3f",velocityVector_10s->x];
 		_resultLabelV10x.text = resultString21;
 		
-		resultString21 = [[NSString alloc] initWithFormat: @"V10y %.2f",velocityVector_10samples->y];
+		resultString21 = [[NSString alloc] initWithFormat: @"V10y %.3f",velocityVector_10s->y];
 		_resultLabelV10y.text = resultString21;
 		
-		resultString21 = [[NSString alloc] initWithFormat: @"V10z %.2f",velocityVector_10samples->z];
+		resultString21 = [[NSString alloc] initWithFormat: @"V10z %.3f",velocityVector_10s->z];
 		_resultLabelV10z.text = resultString21;
 		
-		resultString21 = [[NSString alloc] initWithFormat: @"V2h %.2f",V2h];
+		resultString21 = [[NSString alloc] initWithFormat: @"V2h %.3f",V2h];
 		_resultLabelV2h.text = resultString21;
 		
-		resultString21 = [[NSString alloc] initWithFormat: @"V5h %.2f",V5h];
+		resultString21 = [[NSString alloc] initWithFormat: @"V5h %.3f",V5h];
+		if(V5h>jstructure.mdriving_velocity_threshold_5s )[_resultLabelV5h setTextColor:[UIColor greenColor]];
+		else [_resultLabelV5h setTextColor:[UIColor redColor]];		
 		_resultLabelV5h.text = resultString21;
 		
-		resultString21 = [[NSString alloc] initWithFormat: @"V10h %.2f",V10h];
+		resultString21 = [[NSString alloc] initWithFormat: @"V10h %.3f",V10h];
 		_resultLabelV10h.text = resultString21;
+		if(V10h>jstructure.mdriving_velocity_threshold_10s )[_resultLabelV10h setTextColor:[UIColor greenColor]];
+		else [_resultLabelV10h setTextColor:[UIColor redColor]];
+		
+		
+
 		
 //dOx/dt
-		resultString21 = [[NSString alloc] initWithFormat: @"dOx/dt %.2f",dOx_dt];
+		resultString21 = [[NSString alloc] initWithFormat: @"dOx/dt %3.2f",dOx_dt];
 		_resultLabeldOx_dt.text = resultString21;
 		
 		//JEREMY'S CODE ABOVE UNTIL HERE
@@ -1031,7 +1073,9 @@ NSString *claimedUserState;
 
 	}
 	average_dOx_dt=average_dOx_dt/jstructure.mN_samples_in_1s_analysis;
+#ifdef DEBUGJ
 	NSLog(@"calcdoX/dt avg %f ",average_dOx_dt);
+	#endif
 	
 	return average_dOx_dt;
 }
@@ -1101,62 +1145,35 @@ double  Ccalc_datastructure_avg2( int field,int stdlength,int totlength, double 
 		aVector->y+=jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-i-1].vals[4]*dt;
 		aVector->z+=jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-i-1].vals[5]*dt;
 	}
-//	NSLog(@"integrated V:(%.2f %.2f %.2f)",aVector->x,aVector->y,aVector->z);
+	//this is wrong - integration does not divide by  N
+	aVector->x/=N_samples;
+	aVector->y/=N_samples;
+	aVector->z/=N_samples;
+	#ifdef DEBUGJ
+	NSLog(@"integrated V:(%.2f %.2f %.2f): %d samples",aVector->x,aVector->y,aVector->z,N_samples);
+	#endif
 	return(aVector);
 }
 
 
 
--(void)writeStringToFile:(NSString*)aString {
-	
-	// Build the path, and create if needed.
-	NSString* filePath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-	NSString* fileName = @"JeremyLog.txt";
-	NSString* fileAtPath = [filePath stringByAppendingPathComponent:fileName];
-	//	NSLog(@"%@",filePath);
-	//NSLog(@"%@",fileName);
-	NSLog(@"WRITE%@",fileAtPath);
-	if (![[NSFileManager defaultManager] fileExistsAtPath:fileAtPath]) {
-		[[NSFileManager defaultManager] createFileAtPath:fileAtPath contents:nil attributes:nil];
-	}
-	
-	// The main act.
-	[[aString dataUsingEncoding:NSUTF8StringEncoding] writeToFile:fileAtPath
-													   atomically:NO
-														 encoding:NSStringEncodingConversionAllowLossy
-															error:nil];
-}
 
-//Method writes a string to a text file
-+(void) writeToTextFile{
-	//get the documents directory:
-	NSArray *paths = NSSearchPathForDirectoriesInDomains
-	(NSDocumentDirectory, NSUserDomainMask, YES);
-	NSString *documentsDirectory = [paths objectAtIndex:0];
-	
-	//make a file name to write the data to using the documents directory:
-	NSString *fileName = [NSString stringWithFormat:@"%@/JeremyLog.txt",
-						  documentsDirectory];
-	NSLog(@"WRITEsimple:%@",fileName);
-	
-	//create content - four lines of text
-	NSString *content = @"One\nTwo\nThree\nFour\nFive";
-	//save content to the documents directory
-	[content writeToFile:fileName
-			  atomically:NO
-				encoding:NSStringEncodingConversionAllowLossy
-				   error:nil];
-	
-}
 
 -(void) writeToLogFile:(NSString*)content aFileName:(NSString *)filename{
 	
-	NSLog(@"writing file %@",filename);
+	
 	content = [NSString stringWithFormat:@"%@\n",content];
 	
 	//get the documents directory:
 	NSString *documentsDirectory = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
 	NSString *fileName = [NSString stringWithFormat:@"%@/%@", documentsDirectory,filename];
+
+#ifdef DEBUGJ
+	NSLog(@"directory:%@ file %@",documentsDirectory,filename);
+
+	//NSLog(@"writing file %@",filename);
+#endif
+
 	
 	NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:fileName];
 	if (fileHandle){
@@ -1176,7 +1193,7 @@ double  Ccalc_datastructure_avg2( int field,int stdlength,int totlength, double 
 
 //Method retrieves content from documents directory and
 //displays it in an alert
-+(void) displayContent:(NSString*)fName {
+-(void) displayContent:(NSString*)fName {
 	//get the documents directory:
 	NSArray *paths = NSSearchPathForDirectoriesInDomains
 	(NSDocumentDirectory, NSUserDomainMask, YES);
