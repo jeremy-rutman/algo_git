@@ -1,6 +1,7 @@
 //#define NO_IPHONE_ATTACHED
 //#define DEBUGJ
 //#define READ_FILE
+#define filetoread @"270513.txt"
 
 //
 //  ViewController.m
@@ -41,8 +42,6 @@
 #import "ViewController.h"
 #import <AudioToolbox/AudioToolbox.h>
 #import <AudioToolbox/AudioServices.h>
-
-
 
 //#import "AddTwoTextFieldViewController.h"
 //#import "AddTwoTextFieldAppDelegate.h"
@@ -93,13 +92,11 @@ typedef struct tag2
 	double time_of_last_mdriving_velocity_threshold_10s;
 	double mDuration_in_which_to_accept_high_velocities;
 		
-	
 //crazy driver thresholds
 	double crazy_driver_velocity_threshold;
 	double crazy_driver_dOx_dt_threshold; 
 	double crazy_driver_Ah_threshold; 
 	
-
 	int mN_samples_taken_initial_value;
 	int mN_samples_taken_current_value;
 	int mN_samples_taken;
@@ -128,11 +125,13 @@ typedef struct tag2
     Boolean noInterveningWalkingFlag;
 } jeremystruct;
 
+
+//GLOBAL VARIABLES
 static jeremystruct jstructure;
 static int jmN_samples_taken=0;
-//NSString *logFileName;
+NSString *lglobal_logFileName;
 
-//Jeremy
+
 
 
 
@@ -169,10 +168,17 @@ static int jmN_samples_taken=0;
 @implementation ViewController
 
 
+//GLOBAL VARIABLES
 
 BOOL debug;
 long acc_i=0;
 NSString *popUpString;
+NSString *lglobal_logFileName;
+float batteryLevel=0;
+int totalSamples;
+Boolean isDriving;
+NSString *claimedUserState;
+
 
 -(void) getData{
     while (YES) {
@@ -185,10 +191,6 @@ NSString *popUpString;
     }
 }
 
-float batteryLevel=0;
-int totalSamples;
-Boolean isDriving;
-NSString *claimedUserState;
 
 - (void)viewDidLoad
 {
@@ -256,7 +258,7 @@ NSString *claimedUserState;
 	
 #ifdef READ_FILE
 	NSLog(@"reading file");
-	[self displayContent:@"logfile.txt" ];
+	[self displayContent:filetoread ];
 	exit(EXIT_SUCCESS);
 		
 #endif
@@ -373,7 +375,13 @@ NSString *claimedUserState;
 	if(theAccelerationVector->y<-jstructure.mMaxAcceptedAcceleration) theAccelerationVector->y=-jstructure.mMaxAcceptedAcceleration;
 	if(theAccelerationVector->z<-jstructure.mMaxAcceptedAcceleration) theAccelerationVector->z=jstructure.mMaxAcceptedAcceleration;
 	
-	
+	//determine battery level
+	if ([UIDevice currentDevice].batteryLevel != batteryLevel)
+	{
+		batteryLevel = [UIDevice currentDevice].batteryLevel;
+		NSLog(@"battery level: %f  acc samples:%d",batteryLevel,totalSamples);
+	}
+
 	
 	
 	//initialize values if first time thru
@@ -393,9 +401,9 @@ NSString *claimedUserState;
 		jstructure.mOyStd20sMinWalkingThreshold=10.0;
 		jstructure.mOzStd2sMinWalkingThreshold=5.0;
 		
-		jstructure.mdriving_velocity_threshold_2s=0.04; //was 0.5  V10h  reaches abt .016kkk
-		jstructure.mdriving_velocity_threshold_5s=0.03; //was 0.5  V10h  reaches abt .016kkk
-		jstructure.mdriving_velocity_threshold_10s=0.015; //was 0.5  V10h  reaches abt .016kkk
+		jstructure.mdriving_velocity_threshold_2s=0.8; //was 0.5  V10h  reaches abt .016kkk
+		jstructure.mdriving_velocity_threshold_5s=1.5; //was 0.5  V10h  reaches abt .016kkk
+		jstructure.mdriving_velocity_threshold_10s=1.5; //was 0.5  V10h  reaches abt .016kkk
 		jstructure.mVzStdMaxDrivingThreshold=0.5;
 		jstructure.mVzAvgMaxDrivingThreshold=0.7;
 		jstructure.mOyStd20sMaxDrivingThreshold=7.0;
@@ -436,27 +444,33 @@ NSString *claimedUserState;
 		//generate a logfile name from the date and time
 		NSDate *today = [NSDate date];
 		NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
-		[dateFormat setDateFormat:@"ddMMYY_HHmm"];
+	//	[dateFormat setDateFormat:@"ddMMYY_HHmm"];
+		[dateFormat setDateFormat:@"ddMMYY"];
 		NSString *dateString = [dateFormat stringFromDate:today];
 		global_logFileName=[NSString stringWithFormat:@"%@.txt",dateString];
+		
+	//	[[NSString alloc] initWithFormat: @"logfile2.txt"];
+		
+		lglobal_logFileName=[[NSString alloc] initWithFormat:@"%@.txt",dateString];
+
 		jstructure.thelogFileName=[NSString stringWithFormat:@"%@.txt",dateString];
 
-		NSLog(@"global logfilename is:%@ js %@",global_logFileName,jstructure.thelogFileName);
+		NSLog(@"global logfilename is:%@ js %@ lg %@",global_logFileName,jstructure.thelogFileName,lglobal_logFileName);
 		
 		//write initial file lines		
 
 		[self writeToLogFile:dateString aFileName:jstructure.thelogFileName];
-		[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz state\n" aFileName:jstructure.thelogFileName];
+		[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz state battlevel\n" aFileName:jstructure.thelogFileName];
 		
-		[self writeToLogFile:dateString aFileName:@"logfile.txt"];
-		[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz state\n" aFileName:@"logfile.txt"];
+//		[self writeToLogFile:dateString aFileName:@"logfile2.txt"];
+//		[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz state\n" aFileName:@"logfile2.txt"];
 		
 		claimedUserState=@"W";
 		
 	}
 	#ifdef DEBUGJ
-	NSLog(@"input %d/%d:Ax %.2f Ay %.2f Az %.2f Ox %.2f Oy %.2f Oz %.2f",jmN_samples_taken,jstructure.mN_samples_in_driving_analysis,
-		  theAccelerationVector->x,theAccelerationVector->y,theAccelerationVector->z,theOrientationVector->x,theOrientationVector->y,theOrientationVector->z);
+	NSLog(@"input %d/%d:Ax %.2f Ay %.2f Az %.2f Ox %.2f Oy %.2f Oz %.2f bl %.2f",jmN_samples_taken,jstructure.mN_samples_in_driving_analysis,
+		  theAccelerationVector->x,theAccelerationVector->y,theAccelerationVector->z,theOrientationVector->x,theOrientationVector->y,theOrientationVector->z,batteryLevel );
 	#endif
 	
 //	NSLog(@"sampling rate %d",jstructure.mSamplingRate);
@@ -741,19 +755,24 @@ NSString *claimedUserState;
 		}
 		
 		
+#ifdef DEBUGJ
+		NSLog(@"debug before string construction");
+		NSLog(@"battlevel %.2f",batteryLevel);
+#endif
 		
 		//WRITE TO LOG FILE
 		NSString *logString = [[NSString alloc]
-							   initWithFormat: @"%.2f %.2f %.2f %.2f %.2f %.2f %.2f %@",timeStamp,theaccVectorWC_unbiased->x,theaccVectorWC_unbiased->y,theaccVectorWC_unbiased->z,theOrientationVector->x,theOrientationVector->y,theOrientationVector->z,claimedUserState];
-		NSLog(@"%@",logString);
+							   initWithFormat: @"%.2f %.2f %.2f %.2f %.2f %.2f %.2f %@ %.2f",timeStamp,theaccVectorWC_unbiased->x,theaccVectorWC_unbiased->y,theaccVectorWC_unbiased->z,theOrientationVector->x,theOrientationVector->y,theOrientationVector->z,claimedUserState,batteryLevel];
+#ifdef DEBUGJ
+				NSLog(@"log string %@",logString);
+		NSLog(@"filename %@",lglobal_logFileName);
+#endif
 //		global_logFileName=jstructure.thelogFileName;
+//		NSLog(@"lglogfilename:%@",lglobal_logFileName);
 //		NSLog(@"glogfilename:%@",global_logFileName);
 //		NSLog(@"slogfilename:%@",jstructure.thelogFileName);
-		global_logFileName	=[[NSString alloc] initWithFormat: @"logfile.txt"];
-#ifdef DEBUGJ
-		NSLog(@"string %@ to be written to %@",logString,global_logFileName);
-#endif		
-	[self writeToLogFile:logString aFileName:global_logFileName];
+//		global_logFileName	=[[NSString alloc] initWithFormat: @"logfile2.txt"];
+	[self writeToLogFile:logString aFileName:lglobal_logFileName];
 //		NSLog(@"After writing");
 		//	[self displayContent:@"JeremyLog.txt"];
 		
@@ -857,7 +876,7 @@ NSString *claimedUserState;
 			NSString *resultString18 = [[NSString alloc]
 										initWithFormat: @"WALKING"];
 			_resultLabel18.text = resultString18;
-		setTextColor:[UIColor greenColor];
+			setTextColor:[UIColor greenColor];
 			timeOfLastNotification=[[NSDate date] timeIntervalSince1970];
 		}
 		else if(mDriving)
@@ -875,7 +894,6 @@ NSString *claimedUserState;
 				NSString *resultString18 = [[NSString alloc] initWithFormat: @""];
 				_resultLabel18.text = resultString18;
 			}
-			
 		}
 		
 		NSString *resultString19 = [[NSString alloc] initWithFormat: @"Ozstd2 %.1f",mOz_std2s];
@@ -928,9 +946,6 @@ NSString *claimedUserState;
 		if(V10h>jstructure.mdriving_velocity_threshold_10s )[_resultLabelV10h setTextColor:[UIColor greenColor]];
 		else [_resultLabelV10h setTextColor:[UIColor redColor]];
 		
-		
-
-		
 //dOx/dt
 		resultString21 = [[NSString alloc] initWithFormat: @"dOx/dt %3.2f",dOx_dt];
 		_resultLabeldOx_dt.text = resultString21;
@@ -939,11 +954,6 @@ NSString *claimedUserState;
 		
 		totalSamples++;
 		
-		if ([UIDevice currentDevice].batteryLevel != batteryLevel)
-		{
-			batteryLevel = [UIDevice currentDevice].batteryLevel;
-			NSLog(@"battery level: %f  acc samples:%d",batteryLevel,totalSamples);
-		}
 	};
 }
 
@@ -1146,34 +1156,25 @@ double  Ccalc_datastructure_avg2( int field,int stdlength,int totlength, double 
 		aVector->z+=jstructure.mSensor_history[jstructure.mN_samples_in_driving_analysis-i-1].vals[5]*dt;
 	}
 	//this is wrong - integration does not divide by  N
-	aVector->x/=N_samples;
-	aVector->y/=N_samples;
-	aVector->z/=N_samples;
+//	aVector->x/=N_samples;
+//	aVector->y/=N_samples;
+//	aVector->z/=N_samples;
 	#ifdef DEBUGJ
 	NSLog(@"integrated V:(%.2f %.2f %.2f): %d samples",aVector->x,aVector->y,aVector->z,N_samples);
 	#endif
 	return(aVector);
 }
 
-
-
-
-
 -(void) writeToLogFile:(NSString*)content aFileName:(NSString *)filename{
-	
-	
 	content = [NSString stringWithFormat:@"%@\n",content];
-	
+
 	//get the documents directory:
 	NSString *documentsDirectory = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
 	NSString *fileName = [NSString stringWithFormat:@"%@/%@", documentsDirectory,filename];
 
 #ifdef DEBUGJ
-	NSLog(@"directory:%@ file %@",documentsDirectory,filename);
-
-	//NSLog(@"writing file %@",filename);
+	NSLog(@"path:%@/%@",documentsDirectory,filename);
 #endif
-
 	
 	NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:fileName];
 	if (fileHandle){
@@ -1197,7 +1198,11 @@ double  Ccalc_datastructure_avg2( int field,int stdlength,int totlength, double 
 	//get the documents directory:
 	NSArray *paths = NSSearchPathForDirectoriesInDomains
 	(NSDocumentDirectory, NSUserDomainMask, YES);
+	NSError *error;
 	NSString *documentsDirectory = [paths objectAtIndex:0];
+	//NSArray * directoryContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:documentsPath error:&error];
+	NSArray * directoryContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:documentsDirectory error:&error];
+	NSLog(@"files:%@",directoryContents);
 	
 	//make a file name to write the data to using the documents directory:
 	NSString *fileName = [NSString stringWithFormat:@"%@/%@",
