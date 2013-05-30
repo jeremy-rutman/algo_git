@@ -1,9 +1,10 @@
 //#define NO_IPHONE_ATTACHED
 //#define DEBUGJ
+//#define DEBUGV
 //#define READ_FILE
-#define filetoread @"270513.txt"
+#define filetoread @"290513.txt"
 
-//
+// objective c tutorial - http://rypress.com/tutorials/objective-c/protocols.html
 //  ViewController.m
 //  testAlgo
 //
@@ -13,14 +14,36 @@
 //
 //DONE  get accurate timestamp and base velocity on actual integral (dont assume steady sample rate)
 //state button
+//logs
 
 //TODO
-// check if runs in background
+//run using nstimer
+//check battery use of acc, ori, gps, etc
+//	on simless iphone3.1
+
+//305.0
+
+// lior neu-ner's iphone
+//Hardware Model:      iPhone3,1
+//OS Version:          iPhone OS 6.1.3 (10B329)
+//Kernel version:      Darwin Kernel Version 13.0.0: Wed Feb 13 21:36:52 PST 2013; root:xnu-2107.7.55.2.2~1/RELEASE_ARM_S5L8930X
+
+
+//	YESACC battlevel=-6.507e-5t where t is in seconds for use of 0.1s updates acc (3values), ori this was with two other bgnd apps - parking finder and find my phone
+//	YESACC battlevel=-8.42e-5t from 35% to 10%
+//	YESACC batt=-8.78e-5 from 65% to 15% 280513    with 'video' recent app
+//	NO ACC batt=-1.345e-4 from 100% to 70% 280513  with 'video' recent app
+
+//	now doing acc (6 values), ori with no background apps
+//check if runs in background
+// http://speirs.org/blog/2012/1/2/misconceptions-about-ios-multitasking.html
 //check logs for false positives/negatives
 //add Astd min thresholds to walking detector
+
 //dead reckoning
 //parallel parking
 //better walking detection
+//to differentiate bus from car - look at number of stops per time, indirect route, {are u on bus route}
 
 //driver behavior
 //from http://www.oryarok.org.il/webfiles/audio_files/safety_caralation_MAtzeget.pdf :
@@ -133,9 +156,6 @@ NSString *lglobal_logFileName;
 
 
 
-
-
-
 @interface CMDeviceMotion (TransformToReferenceFrame)
 -(CMAcceleration)userAccelerationInReferenceFrame;
 @end
@@ -178,6 +198,7 @@ float batteryLevel=0;
 int totalSamples;
 Boolean isDriving;
 NSString *claimedUserState;
+NSString *mUserState;
 
 
 -(void) getData{
@@ -191,9 +212,23 @@ NSString *claimedUserState;
     }
 }
 
+-(void)timed_action
+{
+	NSLog(@"doing timed action");
+	jstructure.mSamplingRate=10.0;
+	
+	accVectorWC->x = 1.0+ (double)(arc4random() % 10)/100.0;
+	accVectorWC->y = 2.0+(double)(arc4random() % 10)/100.0;
+	accVectorWC->z = 3.0+(double)(arc4random() % 10)/100.0;
+	orientationVector->x=4+ (double)(arc4random() % 10)/100.0;
+	orientationVector->y=5+ (double)(arc4random() % 10)/100.0;
+	orientationVector->z=6+ (double)(arc4random() % 10)/100.0;
+	[self detectDriving:accVectorWC anOrientationVector:orientationVector ];
+}
 
 - (void)viewDidLoad
 {
+
 	
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
@@ -204,11 +239,12 @@ NSString *claimedUserState;
     accVectorWC= [[AlgoVector alloc] init];
     accVectorWC_unbiased= [[AlgoVector alloc] init];
 	algoLocVector = [[AlgoLocVector alloc] init];
-    locationManager = [[CLLocationManager alloc] init];
 	
+    locationManager = [[CLLocationManager alloc] init];
     locationManager.delegate = self;
     locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers;//kCLLocationAccuracyKilometer;
     locationManager.distanceFilter = 10000;
+	
     //[locationManager setPurpose:@"My Custom Purpose Message..."];
     //[locationManager startUpdatingLocation];
     //[locationManager startMonitoringSignificantLocationChanges];
@@ -235,26 +271,7 @@ NSString *claimedUserState;
 	NSLog(@"starting - 2");
 #endif
 
-#ifdef NO_IPHONE_ATTACHED
-	NSLog(@"no iphone attached");
 
-	while(1)
-	{
-		jstructure.mSamplingRate=10.0;
-		
-		accVectorWC->x = 1.0+ (double)(arc4random() % 10)/100.0;
-		accVectorWC->y = 2.0+(double)(arc4random() % 10)/100.0;
-		accVectorWC->z
-		= 3.0+(double)(arc4random() % 10)/100.0;
-		orientationVector->x=4+ (double)(arc4random() % 10)/100.0;
-		orientationVector->y=5+ (double)(arc4random() % 10)/100.0;
-		orientationVector->z=6+ (double)(arc4random() % 10)/100.0;
-		[self detectDriving:accVectorWC anOrientationVector:orientationVector ];
-		//	[NSThread sleepForTimeInterval:100];
-		usleep(100000);
-	}
-#endif
-	
 	
 #ifdef READ_FILE
 	NSLog(@"reading file");
@@ -262,6 +279,36 @@ NSString *claimedUserState;
 	exit(EXIT_SUCCESS);
 		
 #endif
+	
+#ifdef NO_IPHONE_ATTACHED
+	NSLog(@"no iphone attached");
+	
+	//code from itai for nstimer
+	NSTimer* updateTimer_;
+	updateTimer_=[NSTimer
+				  scheduledTimerWithTimeInterval:0.1  //0.1 seconds
+				  target:self
+				  selector:@selector(timed_action)
+				  userInfo:nil
+				  repeats:YES];
+	
+	/*
+	 [NSTimer scheduledTimerWithTimeInterval:2.0
+	 target:self
+	 selector:@selector(targetMethod:)
+	 userInfo:nil
+	 repeats:NO];
+	 
+	 
+	 */
+	
+	//[self detectDriving:accVectorWC anOrientationVector:orientationVector ];
+	//	[NSThread sleepForTimeInterval:100];
+	//	usleep(100000);
+}
+
+#else
+	
 	
 	jstructure.mSamplingRate=10;  //make sure this agrees with no-iphone sampling rate
 	motionManager = [[CMMotionManager alloc] init];
@@ -299,7 +346,7 @@ NSString *claimedUserState;
 							orientationVector->y=motionManager.deviceMotion.attitude.pitch*360/3.141;
 							orientationVector->z=motionManager.deviceMotion.attitude.roll*360/3.141;
 							
-							//NEW FUNCTION FOR MODULARITY
+							//SEPARATE DRIVING FUNCTION FOR MODULARITY
 							[self detectDriving:accVectorWC anOrientationVector:orientationVector];
 							
 						});
@@ -309,9 +356,10 @@ NSString *claimedUserState;
     
 }
 
+#endif
 
 
-// new function taking inputs of algovectors for orientation, acceleration so i can fake those if there is no iphone handy
+// function taking inputs of algovectors for orientation, acceleration. one can fake those if there is no iphone handy / testing purposes
 - (void)detectDriving:  (AlgoVector *)theAccelerationVector anOrientationVector:(AlgoVector *)theOrientationVector
 {
     [super viewDidLoad];
@@ -332,7 +380,7 @@ NSString *claimedUserState;
     locationManager = [[CLLocationManager alloc] init];
 	
 	//jeremy
-    __block double ax_offset,ay_offset,az_offset; //these are the long-timescale biases of the acceleration vector (assumed to be 'really' 0)
+    __block double ax_offset,ay_offset,az_offset; //these are the long-timescale biases of the acceleration vector (which are assumed to be 'really' 0)
 	__block int i;
 	__block int j;
 	__block double timeStamp;
@@ -382,8 +430,6 @@ NSString *claimedUserState;
 		NSLog(@"battery level: %f  acc samples:%d",batteryLevel,totalSamples);
 	}
 
-	
-	
 	//initialize values if first time thru
 	if(jmN_samples_taken==0) {
 		NSLog(@"First run!");
@@ -460,12 +506,14 @@ NSString *claimedUserState;
 		//write initial file lines		
 
 		[self writeToLogFile:dateString aFileName:jstructure.thelogFileName];
-		[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz state battlevel\n" aFileName:jstructure.thelogFileName];
+		[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz claimedstate detectedstate battlevel\n" aFileName:jstructure.thelogFileName];
 		
 //		[self writeToLogFile:dateString aFileName:@"logfile2.txt"];
 //		[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz state\n" aFileName:@"logfile2.txt"];
 		
 		claimedUserState=@"W";
+		mUserState=@"U";
+
 		
 	}
 	#ifdef DEBUGJ
@@ -544,11 +592,11 @@ NSString *claimedUserState;
 		[self integrateAcceleration:velocityVector_5s Nsamples:(5*jstructure.mSamplingRate)];
 		[self integrateAcceleration:velocityVector_10s Nsamples:(10*jstructure.mSamplingRate)];
 
-#ifdef DEBUGJ
+#ifdef DEBUGV
 		NSLog(@"velocity 2s (%.3f %.3f %.3f)",velocityVector_2s->x,velocityVector_2s->y,velocityVector_2s->z);
 		NSLog(@"velocity 5s (%.3f %.3f %.3f)",velocityVector_5s->x,velocityVector_5s->y,velocityVector_5s->z);
 		NSLog(@"velocity 10s (%.3f %.3f %.3f)",velocityVector_10s->x,velocityVector_10s->y,velocityVector_10s->z);
-	#endif
+#endif
 		
 		double V2h=sqrt(velocityVector_2s->x*velocityVector_2s->x+velocityVector_2s->y*velocityVector_2s->y);
 		double V5h=sqrt(velocityVector_5s->x*velocityVector_5s->x+velocityVector_5s->y*velocityVector_5s->y);
@@ -626,6 +674,8 @@ NSString *claimedUserState;
 		//initialize string w. nothing
 		popUpString = [NSString stringWithFormat:@""];
 		
+		mUserState=@"U";  //default is unknown user state
+
 		//are we walking??
 		if (//mAvgGabs>mGyro_Walking_Threshold &&
 			//	mVzStd>jstructure.mVzStdMinWalkingThreshold &&
@@ -637,6 +687,7 @@ NSString *claimedUserState;
 			mWalking=1;
 			NSLog(@"jeremy thinks - walking!");
 			popUpString = [NSString stringWithFormat:@"jeremy thinks - walking"];
+			mUserState=@"W";
 			//playWalk();
 			jstructure.mTimeofLastWalkingDetection=timeStamp;
 			//get system time, this is probably not right way to do it
@@ -684,6 +735,7 @@ NSString *claimedUserState;
 			mOz_std2s<jstructure.mOzStd2sMaxDrivingThreshold)
 		{
 			mDriving=1;
+			mUserState=@"D";
 			jstructure.noInterveningWalkingFlag=TRUE;
 			jstructure.mTimeofLastDrivingDetection=timeStamp;
 			NSLog(@"jeremy thinks - driving!");
@@ -762,7 +814,7 @@ NSString *claimedUserState;
 		
 		//WRITE TO LOG FILE
 		NSString *logString = [[NSString alloc]
-							   initWithFormat: @"%.2f %.2f %.2f %.2f %.2f %.2f %.2f %@ %.2f",timeStamp,theaccVectorWC_unbiased->x,theaccVectorWC_unbiased->y,theaccVectorWC_unbiased->z,theOrientationVector->x,theOrientationVector->y,theOrientationVector->z,claimedUserState,batteryLevel];
+							   initWithFormat: @"%.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f %@ %@ %.2f",timeStamp,theAccelerationVector->x,theAccelerationVector->y,theAccelerationVector->z,theaccVectorWC_unbiased->x,theaccVectorWC_unbiased->y,theaccVectorWC_unbiased->z,theOrientationVector->x,theOrientationVector->y,theOrientationVector->z,claimedUserState,mUserState,batteryLevel];
 #ifdef DEBUGJ
 				NSLog(@"log string %@",logString);
 		NSLog(@"filename %@",lglobal_logFileName);
@@ -1159,9 +1211,9 @@ double  Ccalc_datastructure_avg2( int field,int stdlength,int totlength, double 
 //	aVector->x/=N_samples;
 //	aVector->y/=N_samples;
 //	aVector->z/=N_samples;
-	#ifdef DEBUGJ
+#ifdef DEBUGV
 	NSLog(@"integrated V:(%.2f %.2f %.2f): %d samples",aVector->x,aVector->y,aVector->z,N_samples);
-	#endif
+#endif
 	return(aVector);
 }
 

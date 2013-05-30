@@ -93,7 +93,7 @@ Boolean AGps_state;
 - (void)detectDriving:  (AlgoVector *)accelerationVector anOrientationVector:(AlgoVector *)orientationVector;
 -(double) calc_dOx_dt ;
 -(void) displayContent:(NSString*)fName;
-
+-(void) timed_action ;
 
     //+(void) displayContent;
 

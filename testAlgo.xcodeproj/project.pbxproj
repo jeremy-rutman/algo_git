@@ -295,6 +295,7 @@
 		6E7E0E6815DAC93900284F57 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer: Tomer  NeuNer (RXEUP5XKPD)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Tomer  NeuNer (RXEUP5XKPD)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -311,6 +312,7 @@
 		6E7E0E6915DAC93900284F57 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer: Tomer  NeuNer (RXEUP5XKPD)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Tomer  NeuNer (RXEUP5XKPD)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;

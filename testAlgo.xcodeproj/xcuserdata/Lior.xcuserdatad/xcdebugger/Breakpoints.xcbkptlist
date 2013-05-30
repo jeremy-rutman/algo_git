@@ -21,11 +21,11 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "testAlgo/ViewController.m"
-         timestampString = "391339984.370972"
+         timestampString = "391532210.701527"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "152"
-         endingLineNumber = "152"
+         startingLineNumber = "172"
+         endingLineNumber = "172"
          landmarkName = "-userAccelerationInReferenceFrame"
          landmarkType = "5">
       </FileBreakpoint>
