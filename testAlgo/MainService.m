@@ -174,14 +174,5 @@ NSString * MovementStatesDescription(MovementStates value) {
 - (void) SetAlgoState:(AlgoSensorState)algoState {
 }
 
-- (void) dealloc {
-  [accVecLastPick release];
-  [accVecCurrPick release];
-  [accVecCurrMax release];
-  [distanceToCarVec release];
-  [algoCurrLocVector release];
-  [lastLocations release];
-  [super dealloc];
-}
 
 @end

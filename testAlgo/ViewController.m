@@ -2,8 +2,10 @@
 //#define DEBUGJ
 //#define DEBUGV
 //#define READ_FILE
-#define filetoread @"290513.txt"
+#define filetoread @"300513.txt"
 
+//1369913146 seconds on 30.05.13
+//4067  ... 15:21 checked and it restaarted
 // objective c tutorial - http://rypress.com/tutorials/objective-c/protocols.html
 //  ViewController.m
 //  testAlgo
@@ -28,6 +30,9 @@
 //OS Version:          iPhone OS 6.1.3 (10B329)
 //Kernel version:      Darwin Kernel Version 13.0.0: Wed Feb 13 21:36:52 PST 2013; root:xnu-2107.7.55.2.2~1/RELEASE_ARM_S5L8930X
 
+//tomer's  phone -
+//OS Version:          iPhone OS 5.0.1 (9A405)
+//Hardware Model: N90AP
 
 //	YESACC battlevel=-6.507e-5t where t is in seconds for use of 0.1s updates acc (3values), ori this was with two other bgnd apps - parking finder and find my phone
 //	YESACC battlevel=-8.42e-5t from 35% to 10%
@@ -124,15 +129,15 @@ typedef struct tag2
 	int mN_samples_taken_current_value;
 	int mN_samples_taken;
 	int mVzCount;
-	Cdatastructure mSensor_history[200];  //mN_samples_in_driving_analysis - itay didnt want #defines and I dont want to have to malloc
+	Cdatastructure mSensor_history[2000];  //mN_samples_in_driving_analysis - itay didnt want #defines and I dont want to have to malloc
 	int mEnough_driving_samples;
 	double V[3];
-	double mVz[200];  //mN_samples_in_driving_analysis =
+	double mVz[2000];  //mN_samples_in_driving_analysis =
 	int mSampleCount20s;
 	int mSampleCount2s;
-	double mOy_20s[200]; //mN_samples_in_driving_analysis
-	double mOy_2s[20]; //mN_samples_in_2s_analysis
-	double mOz_2s[20]; //mN_samples_in_2s_analysis
+	double mOy_20s[2000]; //mN_samples_in_driving_analysis
+	double mOy_2s[200]; //mN_samples_in_2s_analysis
+	double mOz_2s[200]; //mN_samples_in_2s_analysis
 	int mWalking;
 	int mDriving;
 	int mTimeofLastWalkingDetection;
@@ -144,7 +149,7 @@ typedef struct tag2
 	double Vhmax;
 	//	double Vh2max;
 	double PrevioustimeStamp;
-	NSString *thelogFileName;
+	//NSString *thelogFileName;
     Boolean noInterveningWalkingFlag;
 } jeremystruct;
 
@@ -215,7 +220,7 @@ NSString *mUserState;
 -(void)timed_action
 {
 	NSLog(@"doing timed action");
-	jstructure.mSamplingRate=10.0;
+//	jstructure.mSamplingRate=100.0;
 	
 	accVectorWC->x = 1.0+ (double)(arc4random() % 10)/100.0;
 	accVectorWC->y = 2.0+(double)(arc4random() % 10)/100.0;
@@ -258,7 +263,7 @@ NSString *mUserState;
 	SystemSoundID soundID;
 	NSString *soundPath = [[NSBundle mainBundle] pathForResource:@"sound2" ofType:@"wav"];
 	NSURL *soundUrl = [NSURL fileURLWithPath:soundPath];
-	AudioServicesCreateSystemSoundID ((CFURLRef)soundUrl, &soundID);
+	AudioServicesCreateSystemSoundID ((__bridge CFURLRef)soundUrl, &soundID);
 	AudioServicesPlaySystemSound(soundID);
 	
 	
@@ -280,13 +285,16 @@ NSString *mUserState;
 		
 #endif
 	
+	jstructure.mSamplingRate=20;  //make sure this agrees with no-iphone sampling rate
+
+	
 #ifdef NO_IPHONE_ATTACHED
 	NSLog(@"no iphone attached");
 	
 	//code from itai for nstimer
 	NSTimer* updateTimer_;
 	updateTimer_=[NSTimer
-				  scheduledTimerWithTimeInterval:0.1  //0.1 seconds
+				  scheduledTimerWithTimeInterval:(1/jstructure.mSamplingRate)
 				  target:self
 				  selector:@selector(timed_action)
 				  userInfo:nil
@@ -310,7 +318,6 @@ NSString *mUserState;
 #else
 	
 	
-	jstructure.mSamplingRate=10;  //make sure this agrees with no-iphone sampling rate
 	motionManager = [[CMMotionManager alloc] init];
     [motionManager setAccelerometerUpdateInterval:1.0/jstructure.mSamplingRate];
     [motionManager startDeviceMotionUpdates];
@@ -499,14 +506,14 @@ NSString *mUserState;
 		
 		lglobal_logFileName=[[NSString alloc] initWithFormat:@"%@.txt",dateString];
 
-		jstructure.thelogFileName=[NSString stringWithFormat:@"%@.txt",dateString];
+		//jstructure.thelogFileName=[NSString stringWithFormat:@"%@.txt",dateString];
 
-		NSLog(@"global logfilename is:%@ js %@ lg %@",global_logFileName,jstructure.thelogFileName,lglobal_logFileName);
+		NSLog(@"global logfilename is:%@ lg %@",global_logFileName,lglobal_logFileName);
 		
 		//write initial file lines		
 
-		[self writeToLogFile:dateString aFileName:jstructure.thelogFileName];
-		[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz claimedstate detectedstate battlevel\n" aFileName:jstructure.thelogFileName];
+		[self writeToLogFile:dateString aFileName:global_logFileName];
+		[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz claimedstate detectedstate battlevel\n" aFileName:global_logFileName];
 		
 //		[self writeToLogFile:dateString aFileName:@"logfile2.txt"];
 //		[self writeToLogFile:@"\ntime Ax Ay Az Ox Oy Oz state\n" aFileName:@"logfile2.txt"];
@@ -522,15 +529,36 @@ NSString *mUserState;
 	#endif
 	
 //	NSLog(@"sampling rate %d",jstructure.mSamplingRate);
-	jmN_samples_taken++;
-	if (jmN_samples_taken>32000) jmN_samples_taken=jstructure.mN_samples_in_driving_analysis+1;
-	
 	timeStamp=[[NSDate date] timeIntervalSince1970];
 	jstructure.PrevioustimeStamp=[[NSDate date] timeIntervalSince1970];
 	//find average linear accelerations -  an offset which 'should be' zero
-	Ccalc_datastructure_avg2(0,jstructure.mN_samples_in_driving_analysis,jstructure.mN_samples_in_driving_analysis,&ax_offset);
-	Ccalc_datastructure_avg2(1,jstructure.mN_samples_in_driving_analysis,jstructure.mN_samples_in_driving_analysis,&ay_offset);
-	Ccalc_datastructure_avg2(2,jstructure.mN_samples_in_driving_analysis,jstructure.mN_samples_in_driving_analysis,&az_offset);
+
+	jmN_samples_taken++;
+	if (jmN_samples_taken>32000) jmN_samples_taken=jstructure.mN_samples_in_driving_analysis+1;
+
+	if (jmN_samples_taken>jstructure.mN_samples_in_driving_analysis)
+	{
+		jstructure.mEnough_driving_samples=1;
+		Ccalc_datastructure_avg2(0,jstructure.mN_samples_in_driving_analysis,jstructure.mN_samples_in_driving_analysis,&ax_offset);
+		Ccalc_datastructure_avg2(1,jstructure.mN_samples_in_driving_analysis,jstructure.mN_samples_in_driving_analysis,&ay_offset);
+		Ccalc_datastructure_avg2(2,jstructure.mN_samples_in_driving_analysis,jstructure.mN_samples_in_driving_analysis,&az_offset);
+
+	}
+	else
+	{
+		jstructure.mEnough_driving_samples=0;
+		NSString *resultString = [[NSString alloc]
+								  initWithFormat: @"%d/200 SAMPLES",jmN_samples_taken];
+		
+		//	[resultString initWithFormat: @"time %d NOT ENOUGH SAMPLES",(int)timeStamp];
+		_resultLabel0.text = resultString;
+		NSLog(@"sample no. %d/%d",jmN_samples_taken,jstructure.mN_samples_in_driving_analysis );
+		ax_offset=0;
+		ay_offset=0;
+		az_offset=0;
+	}
+	
+	
 	
 	theaccVectorWC_unbiased->x=theAccelerationVector->x-ax_offset;
 	theaccVectorWC_unbiased->y=theAccelerationVector->y-ay_offset;
@@ -559,18 +587,6 @@ NSString *mUserState;
 		{
 			jstructure.mSensor_history[i].vals[j]=jstructure.mSensor_history[i+1].vals[j];
 		}
-	}
-	
-	if (jmN_samples_taken>jstructure.mN_samples_in_driving_analysis) jstructure.mEnough_driving_samples=1;
-	else
-	{
-		jstructure.mEnough_driving_samples=0;
-		NSString *resultString = [[NSString alloc]
-								  initWithFormat: @"%d/200 SAMPLES",jmN_samples_taken];
-		
-		//	[resultString initWithFormat: @"time %d NOT ENOUGH SAMPLES",(int)timeStamp];
-		_resultLabel0.text = resultString;
-		NSLog(@"sample no. %d/%d",jmN_samples_taken,jstructure.mN_samples_in_driving_analysis );
 	}
 	
 	if (jstructure.mEnough_driving_samples)
@@ -802,7 +818,7 @@ NSString *mUserState;
 				soundPath = [[NSBundle mainBundle] pathForResource:@"zinger1" ofType:@"mp3"];
 			}
 			NSURL *soundUrl = [NSURL fileURLWithPath:soundPath];
-			AudioServicesCreateSystemSoundID ((CFURLRef)soundUrl, &soundID);
+			AudioServicesCreateSystemSoundID ((__bridge CFURLRef)soundUrl, &soundID);
 			AudioServicesPlaySystemSound(soundID);
 		}
 		
@@ -839,38 +855,54 @@ NSString *mUserState;
 		NSString *resultString1 = [[NSString alloc]
 								   initWithFormat: @"Ax %.2f", theAccelerationVector->x];
 		_resultLabel1.text = resultString1;
+		[_resultLabel1 setTextColor:[UIColor whiteColor]];
 		
 		//	[CategoryLbl setTextColor:[UIColor colorWithRed:(38/255.f) green:(171/255.f) blue:(226/255.f) alpha:1.0f]];
 		
 		NSString *resultString2 = [[NSString alloc]
 								   initWithFormat: @"Ay %.2f", theAccelerationVector->y];
 		_resultLabel2.text = resultString2;
+		[_resultLabel2 setTextColor:[UIColor whiteColor]];
+
 		NSString *resultString3 = [[NSString alloc]
 								   initWithFormat: @"Az %.2f", theAccelerationVector->z];
 		_resultLabel3.text = resultString3;
+		[_resultLabel3 setTextColor:[UIColor whiteColor]];
+
 		
 		//print unbiased accelerations
 		//print orientations
 		NSString *resultString4 = [[NSString alloc]
 								   initWithFormat: @"Ax %.2f", theaccVectorWC_unbiased->x];
 		_resultLabel4.text = resultString4;
+		[_resultLabel4 setTextColor:[UIColor whiteColor]];
+
 		NSString *resultString5 = [[NSString alloc]
 								   initWithFormat: @"Ay %.2f",theaccVectorWC_unbiased->y];
 		_resultLabel5.text = resultString5;
+		[_resultLabel5 setTextColor:[UIColor whiteColor]];
+
 		NSString *resultString6 = [[NSString alloc]
 								   initWithFormat: @"Az %.2f",theaccVectorWC_unbiased->z];
 		_resultLabel6.text = resultString6;
-		
+		[_resultLabel6 setTextColor:[UIColor whiteColor]];
+
 		//print orientations
 		NSString *resultString7 = [[NSString alloc]
 								   initWithFormat: @"Ox %.1f", theOrientationVector->x];
 		_resultLabel7.text = resultString7;
+		[_resultLabel7 setTextColor:[UIColor whiteColor]];
+
 		NSString *resultString8 = [[NSString alloc]
 								   initWithFormat: @"Oy %.1f",theOrientationVector->y];
 		_resultLabel8.text = resultString8;
+		[_resultLabel8 setTextColor:[UIColor whiteColor]];
+
 		NSString *resultString9 = [[NSString alloc]
 								   initWithFormat: @"Oz %.1f",theOrientationVector->z];
 		_resultLabel9.text = resultString9;
+		[_resultLabel9 setTextColor:[UIColor whiteColor]];
+
 		
 //		NSLog(@"Orientation:Ox %lf Oy %lf Oz %lf",theOrientationVector->x,theOrientationVector->y,theOrientationVector->z);
 		
@@ -904,24 +936,28 @@ NSString *mUserState;
 		NSString *resultString15 = [[NSString alloc]
 									initWithFormat: @"Vzstd %.1f",mVzStd];
 		_resultLabel15.text = resultString15;
+		[_resultLabel15 setTextColor:[UIColor whiteColor]];
+
 		if(mVzStd>jstructure.mVzStdMinWalkingThreshold)[_resultLabel15 setTextColor:[UIColor redColor]];
 		else if(mVzStd<jstructure.mVzStdMaxDrivingThreshold)[_resultLabel15 setTextColor:[UIColor greenColor]];
-		else [_resultLabel15 setTextColor:[UIColor blackColor]];
+		else [_resultLabel15 setTextColor:[UIColor whiteColor]];
 		
 		NSString *resultString16 = [[NSString alloc]
 									initWithFormat: @"Oystd2 %.1f",mOy_std2s];
 		_resultLabel16.text = resultString16;
+		[_resultLabel16 setTextColor:[UIColor whiteColor]];
+
 		if(mOy_std2s>jstructure.mOyStd2sMinWalkingThreshold || mOy_std2s<jstructure.mOyStd2sMinDrivingThreshold)
 			[_resultLabel16 setTextColor:[UIColor redColor]];
 		else if(mOy_std2s<jstructure.mOyStd2sMaxDrivingThreshold) [_resultLabel16 setTextColor:[UIColor greenColor]];
-		else [_resultLabel16 setTextColor:[UIColor blackColor]];
+		else [_resultLabel16 setTextColor:[UIColor whiteColor]];
 		
 		NSString *resultString17 = [[NSString alloc]
 									initWithFormat: @"Oystd20 %.1f",mOy_std20s];
 		_resultLabel17.text = resultString17;
 		if(mOy_std20s>jstructure.mOyStd20sMinWalkingThreshold)[_resultLabel17 setTextColor:[UIColor redColor]];
 		else if(mOy_std20s<jstructure.mOyStd20sMaxDrivingThreshold)[_resultLabel17 setTextColor:[UIColor greenColor]];
-		else [_resultLabel17 setTextColor:[UIColor blackColor]];
+		else [_resultLabel17 setTextColor:[UIColor whiteColor]];
 		
 		if(mWalking)
 		{
@@ -945,6 +981,8 @@ NSString *mUserState;
 			{
 				NSString *resultString18 = [[NSString alloc] initWithFormat: @""];
 				_resultLabel18.text = resultString18;
+				[_resultLabel1 setTextColor:[UIColor whiteColor]];
+
 			}
 		}
 		
@@ -953,41 +991,52 @@ NSString *mUserState;
 		if(mOz_std2s>jstructure.mOzStd2sMinWalkingThreshold || mOz_std2s<jstructure.mOzStd2sMinDrivingThreshold)
 			[_resultLabel19 setTextColor:[UIColor redColor]];
 		else if(mOz_std2s<jstructure.mOzStd2sMaxDrivingThreshold)[_resultLabel19 setTextColor:[UIColor greenColor]];
-		else [_resultLabel19 setTextColor:[UIColor blackColor]];
+		else [_resultLabel19 setTextColor:[UIColor whiteColor]];
 		
 		NSString *resultString20 = [[NSString alloc] initWithFormat: @""];
 		_resultLabel20.text = resultString20;
-		
+		[_resultLabel20 setTextColor:[UIColor whiteColor]];
+
 		NSString *resultString21 = [[NSString alloc] initWithFormat: @"V2x %.2f",velocityVector_2s->x];
 		_resultLabelV2x.text = resultString21;
-		
+		[_resultLabelV2x setTextColor:[UIColor whiteColor]];
+
 		resultString21 = [[NSString alloc] initWithFormat: @"V2y %.3f",velocityVector_2s->y];
 		_resultLabelV2y.text = resultString21;
-		
+		[_resultLabelV2y setTextColor:[UIColor whiteColor]];
+
 		resultString21 = [[NSString alloc] initWithFormat: @"V2z %.3f",velocityVector_2s->z];
 		_resultLabelV2z.text = resultString21;
-		
+		[_resultLabelV2z setTextColor:[UIColor whiteColor]];
+
 		resultString21 = [[NSString alloc] initWithFormat: @"V5x %.3f",velocityVector_5s->x];
 		_resultLabelV5x.text = resultString21;
-		
+		[_resultLabelV5x setTextColor:[UIColor whiteColor]];
+
 		resultString21 = [[NSString alloc] initWithFormat: @"V5y %.3f",velocityVector_5s->y];
 		_resultLabelV5y.text = resultString21;
-		
+		[_resultLabelV5y setTextColor:[UIColor whiteColor]];
+
 		resultString21 = [[NSString alloc] initWithFormat: @"V5z %.3f",velocityVector_5s->z];
 		_resultLabelV5z.text = resultString21;
-		
+		[_resultLabelV5z setTextColor:[UIColor whiteColor]];
+
 		resultString21 = [[NSString alloc] initWithFormat: @"V10x %.3f",velocityVector_10s->x];
 		_resultLabelV10x.text = resultString21;
-		
+		[_resultLabelV10x setTextColor:[UIColor whiteColor]];
+
 		resultString21 = [[NSString alloc] initWithFormat: @"V10y %.3f",velocityVector_10s->y];
 		_resultLabelV10y.text = resultString21;
-		
+		[_resultLabelV10y setTextColor:[UIColor whiteColor]];
+
 		resultString21 = [[NSString alloc] initWithFormat: @"V10z %.3f",velocityVector_10s->z];
 		_resultLabelV10z.text = resultString21;
-		
+		[_resultLabelV10z setTextColor:[UIColor whiteColor]];
+
 		resultString21 = [[NSString alloc] initWithFormat: @"V2h %.3f",V2h];
 		_resultLabelV2h.text = resultString21;
-		
+		[_resultLabelV2h setTextColor:[UIColor whiteColor]];
+
 		resultString21 = [[NSString alloc] initWithFormat: @"V5h %.3f",V5h];
 		if(V5h>jstructure.mdriving_velocity_threshold_5s )[_resultLabelV5h setTextColor:[UIColor greenColor]];
 		else [_resultLabelV5h setTextColor:[UIColor redColor]];		
@@ -1001,7 +1050,8 @@ NSString *mUserState;
 //dOx/dt
 		resultString21 = [[NSString alloc] initWithFormat: @"dOx/dt %3.2f",dOx_dt];
 		_resultLabeldOx_dt.text = resultString21;
-		
+		[_resultLabeldOx_dt setTextColor:[UIColor whiteColor]];
+
 		//JEREMY'S CODE ABOVE UNTIL HERE
 		
 		totalSamples++;
@@ -1267,7 +1317,6 @@ double  Ccalc_datastructure_avg2( int field,int stdlength,int totlength, double 
 	//use simple alert from my library (see previous post for details)
 	//[ASFunctions alert:content];
 	NSLog(@"CONTENT:%@",content);
-	[content release];
 	
 }
 
@@ -1319,7 +1368,7 @@ double  Ccalc_datastructure_avg2( int field,int stdlength,int totlength, double 
 	NSString *const resourceDir = [[NSBundle mainBundle] resourcePath];
 	NSString *const fullPath = [resourceDir stringByAppendingPathComponent:path];
 	NSURL *const url = [NSURL fileURLWithPath:fullPath];
-	OSStatus errcode = AudioServicesCreateSystemSoundID((CFURLRef) url, &handle);
+	OSStatus errcode = AudioServicesCreateSystemSoundID((__bridge CFURLRef) url, &handle);
 	NSAssert1(errcode == 0, @"Failed to load sound: %@", path);
 	return self;
 }
