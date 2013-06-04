@@ -21,13 +21,26 @@
          ignoreCount = "0"
          continueAfterRunningActions = "No"
          filePath = "testAlgo/ViewController.h"
-         timestampString = "390845228.065612"
+         timestampString = "392034393.949587"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "93"
-         endingLineNumber = "93"
+         startingLineNumber = "91"
+         endingLineNumber = "91"
          landmarkName = "-detectDriving:anOrientationVector:"
          landmarkType = "4">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "Yes"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "testAlgo/AppDelegate.m"
+         timestampString = "392035408.1143"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "120"
+         endingLineNumber = "120"
+         landmarkName = "-applicationDidEnterBackground:"
+         landmarkType = "5">
       </FileBreakpoint>
    </FileBreakpoints>
    <ExceptionBreakpoints>

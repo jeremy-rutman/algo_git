@@ -93,7 +93,7 @@ dispatch_block_t expirationHandler = nil;
         
         // inform others to stop tasks, if you like
         [[NSNotificationCenter defaultCenter] postNotificationName:@"MyApplicationEntersBackground" object:self];
-//        long i=0;
+        long i=57;
         while(TRUE)
         {
             NSLog(@"BGTime left: %f", [UIApplication sharedApplication].backgroundTimeRemaining);
@@ -115,7 +115,11 @@ dispatch_block_t expirationHandler = nil;
             //    [locationManager startUpdatingLocation];
             //    [locationManager stopUpdatingLocation];
             //}
-            [NSThread sleepForTimeInterval:570];
+            //while (i--)
+            //{
+                [NSThread sleepForTimeInterval:570];
+                NSLog(@"BGTime left: %f", [UIApplication sharedApplication].backgroundTimeRemaining);
+        
             if (Gps_state == NO)
             {
                 //if (AGps_state)
@@ -125,6 +129,7 @@ dispatch_block_t expirationHandler = nil;
                 //if (AGps_state)
                 //    [locationManager startMonitoringSignificantLocationChanges];
             }
+            //}
         }
         // do your background work here
     });

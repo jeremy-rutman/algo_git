@@ -1,16 +1,21 @@
-//
+//#define NO_IPHONE_ATTACHED
+//#define DEBUGJ
+//#define DEBUGV
+#define DEBUGLOG
+//#define READ_FILE
+#define filetoread @"300513.txt"
+
 //  ViewController.h
 //  testAlgo
-//
 //  Created by Itai David on 8/14/12.
 //  Copyright (c) 2012 itaidddd@gmail.com. All rights reserved.
-//
 
 #import <UIKit/UIKit.h>
 #import <CoreLocation/CoreLocation.h>
 #import <CoreMotion/CoreMotion.h>
 #import "MainService.h"
 #import <Foundation/Foundation.h>
+#import "drivingDetector.h"
 
 UIBackgroundTaskIdentifier bgTask;
 CLLocationManager *locationManager;
@@ -22,16 +27,9 @@ Boolean AGps_state;
     
     AlgoDetection * algoDetection;
     AlgoVector * accVector;
-    AlgoVector *accVectorWC;
-    AlgoVector *accVectorWC_unbiased;
-    AlgoVector *orientationVector;
-	AlgoVector *velocityVector_1s;
-	AlgoVector *velocityVector_2s;
-	AlgoVector *velocityVector_5s;
-	AlgoVector *velocityVector_10s;
-    AlgoLocVector * algoLocVector;
-    NSString *global_logFileName;
 
+    AlgoLocVector * algoLocVector;
+    drivingDetector *myDrivingDetector;
     
  //   IBOutlet UIButton *my_very_first_button;
     
@@ -46,6 +44,7 @@ Boolean AGps_state;
 }
 
 @property (copy, nonatomic) NSString *userName;
+
 @property (strong, nonatomic) IBOutlet UILabel *resultLabel0;
 @property (strong, nonatomic) IBOutlet UILabel *resultLabel1;
 @property (strong, nonatomic) IBOutlet UILabel *resultLabel2;
@@ -81,19 +80,16 @@ Boolean AGps_state;
 @property (strong, nonatomic) IBOutlet UILabel *resultLabelV10h;
 @property (strong, nonatomic) IBOutlet UILabel *resultLabeldOx_dt;
 
-- (IBAction)butttonDIDpressed:(id)sender;
--(void)writeStringToFile:(NSString*)aString;
+
+
+
 //Method writes a string to a text file
-+(void) writeToTextFile;
--(void) writeToLogFile:(NSString*)aString aFileName:(NSString *)filename;
--(AlgoVector *) integrateAcceleration:(AlgoVector*)aVector Nsamples:(int)N_samples;
--(void)viewDidLoad;
+//-(void) writeToLogFile:(NSString*)aString aFileName:(NSString *)filename;
+//-(void)viewDidLoad;
 //- (void)viewDidUnload;
 //- (void) segmentAction:(id)sender;
-- (void)detectDriving:  (AlgoVector *)accelerationVector anOrientationVector:(AlgoVector *)orientationVector;
--(double) calc_dOx_dt ;
--(void) displayContent:(NSString*)fName;
--(void) timed_action ;
+//-(void) displayContent:(NSString*)fName;
+- (IBAction)butttonDIDpressed:(id)sender;
 
     //+(void) displayContent;
 
@@ -107,11 +103,12 @@ Boolean AGps_state;
 @end
 
 
-@interface Sound : NSObject
+/*
+ @interface Sound : NSObject
 
 // Path is relative to the resources dir.
 - (id) initWithPath: (NSString*) path;
 - (void) play;
 
 @end
-
+*/

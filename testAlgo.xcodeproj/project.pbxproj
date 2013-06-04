@@ -24,6 +24,7 @@
 		BA090D5D173927AC001CFD16 /* zinger2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BA090D5C173927AC001CFD16 /* zinger2.mp3 */; };
 		BA8220E217367AAB00F0853C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA8220E117367AAB00F0853C /* AudioToolbox.framework */; };
 		BA8220E417367F4900F0853C /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = BA8220E317367F4900F0853C /* Default-568h@2x.png */; };
+		BA8374A1175B51B1006B1E70 /* drivingDetector.m in Sources */ = {isa = PBXBuildFile; fileRef = BA8374A0175B51B1006B1E70 /* drivingDetector.m */; };
 		BAAE88341742565F00C42FB8 /* EventKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BAAE88321742565F00C42FB8 /* EventKit.framework */; };
 		BAAE88351742565F00C42FB8 /* EventKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BAAE88331742565F00C42FB8 /* EventKitUI.framework */; };
 /* End PBXBuildFile section */
@@ -52,6 +53,8 @@
 		BA090D5C173927AC001CFD16 /* zinger2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = zinger2.mp3; sourceTree = "<group>"; };
 		BA8220E117367AAB00F0853C /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		BA8220E317367F4900F0853C /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		BA83749F175B51B1006B1E70 /* drivingDetector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = drivingDetector.h; sourceTree = "<group>"; };
+		BA8374A0175B51B1006B1E70 /* drivingDetector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = drivingDetector.m; sourceTree = "<group>"; };
 		BAAE88321742565F00C42FB8 /* EventKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKit.framework; path = System/Library/Frameworks/EventKit.framework; sourceTree = SDKROOT; };
 		BAAE88331742565F00C42FB8 /* EventKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKitUI.framework; path = System/Library/Frameworks/EventKitUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -111,6 +114,8 @@
 		6E7E0E5315DAC93900284F57 /* testAlgo */ = {
 			isa = PBXGroup;
 			children = (
+				BA83749F175B51B1006B1E70 /* drivingDetector.h */,
+				BA8374A0175B51B1006B1E70 /* drivingDetector.m */,
 				6E7703B115DAE08E00FCDB9E /* MainService.m */,
 				6E7703B415DAE08E00FCDB9E /* MainService.h */,
 				6E7E0E5C15DAC93900284F57 /* AppDelegate.h */,
@@ -210,6 +215,7 @@
 				6E7E0E5E15DAC93900284F57 /* AppDelegate.m in Sources */,
 				6E7E0E6115DAC93900284F57 /* ViewController.m in Sources */,
 				6E7703B215DAE08E00FCDB9E /* MainService.m in Sources */,
+				BA8374A1175B51B1006B1E70 /* drivingDetector.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
