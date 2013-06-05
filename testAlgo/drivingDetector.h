@@ -137,8 +137,10 @@
 - (AlgoVector *)integrateAcceleration:(AlgoVector *)aVector Nsamples:(int)N_samples;
 -(double) calc_dOx_dt;
 -(void) writeToLogFile:(NSString*)content aFileName:(NSString *)filename;
--(void)timed_action;
+//-(void)timed_action;
 -(double) Ccalc_datastructure_avg2: (int)field   slength:(int)stdlength tlength:(int)totlength ans:(double *)answer;
+//+(natural_t) get_free_memory;
+//- (double)currentMemoryUsage;
 
 
 //- (void) Copy:(AlgoVector *)algVec;

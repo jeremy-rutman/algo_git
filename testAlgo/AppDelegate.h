@@ -17,4 +17,7 @@
 
 @property (strong, nonatomic) ViewController *viewController;
 
+-(natural_t) get_free_memory ;
+- (double)currentMemoryUsage ;
+
 @end

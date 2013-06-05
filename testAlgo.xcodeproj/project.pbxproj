@@ -22,6 +22,7 @@
 		BA090D59173914E9001CFD16 /* sound2.wav in Resources */ = {isa = PBXBuildFile; fileRef = BA090D58173914E9001CFD16 /* sound2.wav */; };
 		BA090D5B173927A3001CFD16 /* zinger1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BA090D5A173927A3001CFD16 /* zinger1.mp3 */; };
 		BA090D5D173927AC001CFD16 /* zinger2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BA090D5C173927AC001CFD16 /* zinger2.mp3 */; };
+		BA09C37A175F2A4F00DB23DC /* File in Resources */ = {isa = PBXBuildFile; fileRef = BA09C379175F2A4F00DB23DC /* File */; };
 		BA8220E217367AAB00F0853C /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA8220E117367AAB00F0853C /* AudioToolbox.framework */; };
 		BA8220E417367F4900F0853C /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = BA8220E317367F4900F0853C /* Default-568h@2x.png */; };
 		BA8374A1175B51B1006B1E70 /* drivingDetector.m in Sources */ = {isa = PBXBuildFile; fileRef = BA8374A0175B51B1006B1E70 /* drivingDetector.m */; };
@@ -51,6 +52,7 @@
 		BA090D58173914E9001CFD16 /* sound2.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = sound2.wav; sourceTree = "<group>"; };
 		BA090D5A173927A3001CFD16 /* zinger1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = zinger1.mp3; sourceTree = "<group>"; };
 		BA090D5C173927AC001CFD16 /* zinger2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = zinger2.mp3; sourceTree = "<group>"; };
+		BA09C379175F2A4F00DB23DC /* File */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = File; sourceTree = "<group>"; };
 		BA8220E117367AAB00F0853C /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		BA8220E317367F4900F0853C /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		BA83749F175B51B1006B1E70 /* drivingDetector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = drivingDetector.h; sourceTree = "<group>"; };
@@ -81,6 +83,7 @@
 		6E7E0E3E15DAC93900284F57 = {
 			isa = PBXGroup;
 			children = (
+				BA09C379175F2A4F00DB23DC /* File */,
 				BA8220E317367F4900F0853C /* Default-568h@2x.png */,
 				6E7E0E5315DAC93900284F57 /* testAlgo */,
 				6E7E0E4C15DAC93900284F57 /* Frameworks */,
@@ -201,6 +204,7 @@
 				BA090D59173914E9001CFD16 /* sound2.wav in Resources */,
 				BA090D5B173927A3001CFD16 /* zinger1.mp3 in Resources */,
 				BA090D5D173927AC001CFD16 /* zinger2.mp3 in Resources */,
+				BA09C37A175F2A4F00DB23DC /* File in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

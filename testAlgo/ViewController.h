@@ -3,7 +3,7 @@
 //#define DEBUGV
 #define DEBUGLOG
 //#define READ_FILE
-#define filetoread @"300513.txt"
+#define filetoread @"050613.txt"
 
 //  ViewController.h
 //  testAlgo
@@ -35,8 +35,6 @@ Boolean AGps_state;
     
     
 //    IBOutlet UILabel *j_label;
-    
-    
     
  //   IBOutlet UITextField *j_textfield;
     
